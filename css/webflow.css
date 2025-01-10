@@ -163,7 +163,7 @@ pre.w-code-block code {
   position: fixed !important;
   display: inline-block !important;
   visibility: visible !important;
-  opacity: 1 !important;
+  opacity: 0 !important;
   z-index: 2147483647 !important;
   top: auto !important;
   right: 12px !important;
