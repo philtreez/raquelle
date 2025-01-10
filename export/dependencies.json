@@ -1,0 +1,34 @@
+[
+  {
+    "id": "b_cow_wav",
+    "file": "../../Max 8/Projects/cow.wav"
+  },
+  {
+    "id": "b_clap_wav",
+    "file": "../../Max 8/Projects/clap.wav"
+  },
+  {
+    "id": "b_hat1_wav",
+    "file": "../../Max 8/Projects/hat1.wav"
+  },
+  {
+    "id": "b_snare_wav",
+    "file": "../../Max 8/Projects/snare.wav"
+  },
+  {
+    "id": "b_conga_wav",
+    "file": "../../Max 8/Projects/conga.wav"
+  },
+  {
+    "id": "b_clave_wav",
+    "file": "../../Max 8/Projects/clave.wav"
+  },
+  {
+    "id": "b_rim_wav",
+    "file": "../../Max 8/Projects/rim.wav"
+  },
+  {
+    "id": "b_kick1_wav",
+    "file": "../../Max 8/Projects/kick1.wav"
+  }
+]
