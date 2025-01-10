@@ -28,14 +28,6 @@ async function setup() {
         device.node.connect(outputNode);
         console.log("RNBO-Device an Audio-Ausgang angeschlossen.");
 
-        // Testweise Oszillator erzeugen und verbinden
-        const osc = context.createOscillator();
-        osc.type = "sine";
-        osc.frequency.value = 440;
-        osc.connect(outputNode);
-        osc.start();
-        console.log("Test-Oszillator gestartet.");
-
         // Initiale Werte für die Parameter setzen
         setInitialParameterValues(device);
 
