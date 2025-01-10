@@ -37,6 +37,17 @@ async function setup() {
             const sliderParam = device.parametersById.get(`c${i}`);
 
             if (sliderDiv && sliderParam) {
+                // Klick-Event für die Steps hinzufügen
+                const steps = sliderDiv.querySelectorAll(".step");
+                steps.forEach((step, index) => {
+                    step.addEventListener("click", () => {
+                        sliderParam.value = index; // Setze den RNBO-Parameter auf den Index des angeklickten Steps
+                        updateSliderVisual(sliderDiv, index);
+                        console.log(`Slider c${i} set to value: ${index}`);
+                    });
+                });
+
+                // Event für RNBO-Parameteränderungen abonnieren
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === sliderParam.id) {
                         const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-12
@@ -47,13 +58,12 @@ async function setup() {
             }
         }
 
-        // Funktion zur Aktualisierung der Slider-Visualisierung
         function updateSliderVisual(sliderDiv, frameIndex) {
             const steps = sliderDiv.querySelectorAll(".step");
             steps.forEach((step, index) => {
                 step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
             });
-        }
+        }        
 
     } catch (error) {
         console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
