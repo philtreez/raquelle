@@ -47,6 +47,7 @@ async function setup() {
             }
         }
 
+        // Funktion zur Aktualisierung der Slider-Visualisierung
         function updateSliderVisual(sliderDiv, frameIndex) {
             const steps = sliderDiv.querySelectorAll(".step");
             steps.forEach((step, index) => {
