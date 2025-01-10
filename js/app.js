@@ -1,7 +1,8 @@
+// ------ RNBO integration ------
 async function setup() {
     console.log("Setup gestartet...");
 
-    const patchExportURL = "https://raquelle.vercel.app/export/patch.export.json"; // Passe die URL deines Patches an
+    const patchExportURL = "https://aquamarine-nasturtium-7f739b.netlify.app/export/patch.export.json"; // Passe die URL deines Patches an
     const WAContext = window.AudioContext || window.webkitAudioContext;
     const context = new WAContext();
     const outputNode = context.createGain();
@@ -25,7 +26,15 @@ async function setup() {
         console.log("RNBO-Device erfolgreich erstellt.");
 
         device.node.connect(outputNode);
-        console.log("RNBO-Device mit Audio-Ausgang verbunden.");
+        console.log("RNBO-Device an Audio-Ausgang angeschlossen.");
+
+        // Testweise Oszillator erzeugen und verbinden
+        const osc = context.createOscillator();
+        osc.type = "sine";
+        osc.frequency.value = 440;
+        osc.connect(outputNode);
+        osc.start();
+        console.log("Test-Oszillator gestartet.");
 
         // Initiale Werte für die Parameter setzen
         setInitialParameterValues(device);
