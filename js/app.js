@@ -2,7 +2,7 @@
 async function setup() {
     console.log("Setup gestartet...");
 
-    const patchExportURL = "https://aquamarine-nasturtium-7f739b.netlify.app/export/patch.export.json"; // Passe die URL deines Patches an
+    const patchExportURL = "https://raquelle-philtreezs-projects.vercel.app/export/patch.export.json"; // Passe die URL deines Patches an
     const WAContext = window.AudioContext || window.webkitAudioContext;
     const context = new WAContext();
     const outputNode = context.createGain();
