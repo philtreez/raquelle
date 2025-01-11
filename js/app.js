@@ -73,19 +73,17 @@ async function setup() {
 
         // ------ Intro PNG-Strip Steuerung ------
         const introDiv = document.getElementById("intro");
-        const introContainer = document.getElementById("intro-container");
         const introParam = device.parametersById.get("intro");
+        const introContainer = document.getElementById("intro-container");
 
-        if (introDiv && introParam && introContainer) {
+        if (introDiv && introParam) {
             device.parameterChangeEvent.subscribe((param) => {
                 if (param.id === introParam.id) {
                     const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
                     const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
                     introDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    introContainer.style.display = (frameIndex === 0) ? "none" : "block";
                     console.log(`Intro frame set to: ${frameIndex}`);
-
-                    // Sichtbarkeit des intro-container steuern
-                    introContainer.style.display = frameIndex === 0 ? "none" : "block";
                 }
             });
         }
@@ -97,6 +95,9 @@ async function setup() {
 
             if (sliderDiv && sliderParam) {
                 const steps = sliderDiv.querySelectorAll(".step");
+
+                // Setze initialen Zustand der Slider entsprechend der Parameterwerte
+                updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
 
                 sliderDiv.addEventListener("mousedown", (event) => {
                     isDragging = true;
@@ -167,26 +168,10 @@ async function setup() {
 }
 
 function setInitialParameterValues(device) {
-    const initialValues = {
-        c1: 4,
-        c2: 5,
-        c3: 5,
-        c4: 5,
-        c5: 6,
-        slicont: 0
-    };
-
-    Object.entries(initialValues).forEach(([paramId, value]) => {
+    const initialValues = { c1: 4, c2: 5, c3: 5, c4: 5, c5: 6, slicont: 0 };
+    Object.keys(initialValues).forEach((paramId) => {
         const param = device.parametersById.get(paramId);
-        if (param) {
-            param.value = value; // Setze den Initialwert für den RNBO-Parameter
-
-            // Visuelle Aktualisierung der Slider
-            const sliderDiv = document.getElementById(`${paramId}-slider`);
-            if (sliderDiv) {
-                updateSliderVisual(sliderDiv, value); // Aktualisiere die Anzeige der Step-Buttons
-            }
-        }
+        if (param) param.value = initialValues[paramId];
     });
 }
 
