@@ -73,15 +73,19 @@ async function setup() {
 
         // ------ Intro PNG-Strip Steuerung ------
         const introDiv = document.getElementById("intro");
+        const introContainer = document.getElementById("intro-container");
         const introParam = device.parametersById.get("intro");
 
-        if (introDiv && introParam) {
+        if (introDiv && introParam && introContainer) {
             device.parameterChangeEvent.subscribe((param) => {
                 if (param.id === introParam.id) {
                     const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
                     const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
                     introDiv.style.backgroundPosition = `0 -${yOffset}`;
                     console.log(`Intro frame set to: ${frameIndex}`);
+
+                    // Sichtbarkeit des intro-container steuern
+                    introContainer.style.display = frameIndex === 0 ? "none" : "block";
                 }
             });
         }
