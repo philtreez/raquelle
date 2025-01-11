@@ -28,6 +28,31 @@ async function setup() {
         device.node.connect(outputNode);
         console.log("RNBO-Device an Audio-Ausgang angeschlossen.");
 
+        // Parameter zur Steuerung der Sichtbarkeit abonnieren
+        const chorderParam = device.parametersById.get("chorder"); // Name des RNBO-Parameters
+        if (chorderParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === chorderParam.id) {
+                    const value = Math.round(param.value); // Rundet auf ganze Zahlen
+                    updateChorderVisibility(value);
+                    console.log(`Chorder visibility set to: ${value}`);
+                }
+            });
+        }
+
+        // Funktion zur Aktualisierung der Sichtbarkeit
+        function updateChorderVisibility(value) {
+            for (let i = 1; i <= 3; i++) {
+                const chorderDiv = document.getElementById(`chorder${i}`);
+                if (chorderDiv) {
+                    chorderDiv.style.display = (value === i) ? "block" : "none";
+                }
+            }
+        }
+
+        // Setze initial alle Chorder auf unsichtbar
+        updateChorderVisibility(0);
+
         // Initiale Werte für die Parameter setzen
         setInitialParameterValues(device);
 
