@@ -71,6 +71,21 @@ async function setup() {
             }
         }
 
+        // ------ Intro PNG-Strip Steuerung ------
+        const introDiv = document.getElementById("intro");
+        const introParam = device.parametersById.get("intro");
+
+        if (introDiv && introParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === introParam.id) {
+                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                    const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
+                    introDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    console.log(`Intro frame set to: ${frameIndex}`);
+                }
+            });
+        }
+
         // ------ Slider Steuerung mit Drag-Funktion (c1 bis c5) ------
         for (let i = 1; i <= 5; i++) {
             const sliderDiv = document.getElementById(`c${i}-slider`);
