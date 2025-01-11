@@ -178,7 +178,15 @@ function setInitialParameterValues(device) {
 
     Object.entries(initialValues).forEach(([paramId, value]) => {
         const param = device.parametersById.get(paramId);
-        if (param) param.value = value;
+        if (param) {
+            param.value = value; // Setze den Initialwert für den RNBO-Parameter
+
+            // Visuelle Aktualisierung der Slider
+            const sliderDiv = document.getElementById(`${paramId}-slider`);
+            if (sliderDiv) {
+                updateSliderVisual(sliderDiv, value); // Aktualisiere die Anzeige der Step-Buttons
+            }
+        }
     });
 }
 
