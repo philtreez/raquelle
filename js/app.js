@@ -166,6 +166,22 @@ async function setup() {
     console.log(`AudioContext state: ${context.state}`);
 }
 
+function setInitialParameterValues(device) {
+    const initialValues = {
+        c1: 4,
+        c2: 5,
+        c3: 5,
+        c4: 5,
+        c5: 6,
+        slicont: 0
+    };
+
+    Object.entries(initialValues).forEach(([paramId, value]) => {
+        const param = device.parametersById.get(paramId);
+        if (param) param.value = value;
+    });
+}
+
 function loadRNBOScript(version) {
     return new Promise((resolve, reject) => {
         const script = document.createElement("script");
