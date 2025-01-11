@@ -8,20 +8,18 @@ async function setup() {
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
 
-    let patcher, device;
+    let patcher, device, isDragging = false, currentSliderIndex = -1;
 
     try {
         // Lade den RNBO-Patch
         const response = await fetch(patchExportURL);
         patcher = await response.json();
 
-        // Lade die RNBO-Library, falls noch nicht verfügbar
         if (!window.RNBO) {
             console.log("Lade RNBO-Bibliothek...");
             await loadRNBOScript(patcher.desc.meta.rnboversion);
         }
 
-        // Erstelle das RNBO-Device
         device = await RNBO.createDevice({ context, patcher });
         console.log("RNBO-Device erfolgreich erstellt.");
 
@@ -40,7 +38,6 @@ async function setup() {
             });
         }
 
-        // Funktion zur Aktualisierung der Sichtbarkeit
         function updateChorderVisibility(value) {
             for (let i = 1; i <= 3; i++) {
                 const chorderDiv = document.getElementById(`chorder${i}`);
@@ -50,11 +47,7 @@ async function setup() {
             }
         }
 
-        // Setze initial alle Chorder auf unsichtbar
-        updateChorderVisibility(0);
-
-        // Initiale Werte für die Parameter setzen
-        setInitialParameterValues(device);
+        updateChorderVisibility(0); // Setze initial alle Chorder auf unsichtbar
 
         // ------ Steuerung für slicont (0-5) ------
         const slicontParam = device.parametersById.get("slicont");
@@ -78,23 +71,36 @@ async function setup() {
             }
         }
 
-        // ------ Slider Steuerung (c1 bis c5) ------
+        // ------ Slider Steuerung mit Drag-Funktion (c1 bis c5) ------
         for (let i = 1; i <= 5; i++) {
             const sliderDiv = document.getElementById(`c${i}-slider`);
             const sliderParam = device.parametersById.get(`c${i}`);
 
             if (sliderDiv && sliderParam) {
-                // Klick-Event für die Steps hinzufügen
                 const steps = sliderDiv.querySelectorAll(".step");
-                steps.forEach((step, index) => {
-                    step.addEventListener("click", () => {
-                        sliderParam.value = index; // Setze den RNBO-Parameter auf den Index des angeklickten Steps
-                        updateSliderVisual(sliderDiv, index);
-                        console.log(`Slider c${i} set to value: ${index}`);
-                    });
+
+                sliderDiv.addEventListener("mousedown", (event) => {
+                    isDragging = true;
+                    currentSliderIndex = i;
+                    handleStepSelection(event, sliderDiv, steps, sliderParam);
                 });
 
-                // Event für RNBO-Parameteränderungen abonnieren
+                sliderDiv.addEventListener("mousemove", (event) => {
+                    if (isDragging && currentSliderIndex === i) {
+                        handleStepSelection(event, sliderDiv, steps, sliderParam);
+                    }
+                });
+
+                sliderDiv.addEventListener("mouseup", () => {
+                    isDragging = false;
+                    currentSliderIndex = -1;
+                });
+
+                sliderDiv.addEventListener("mouseleave", () => {
+                    isDragging = false;
+                    currentSliderIndex = -1;
+                });
+
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === sliderParam.id) {
                         const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-12
@@ -105,6 +111,19 @@ async function setup() {
             }
         }
 
+        function handleStepSelection(event, sliderDiv, steps, sliderParam) {
+            const rect = sliderDiv.getBoundingClientRect();
+            const y = event.clientY - rect.top;
+            const stepHeight = rect.height / steps.length;
+            const selectedIndex = Math.floor(y / stepHeight);
+
+            if (selectedIndex >= 0 && selectedIndex < steps.length) {
+                sliderParam.value = selectedIndex;
+                updateSliderVisual(sliderDiv, selectedIndex);
+                console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex}`);
+            }
+        }
+
         function updateSliderVisual(sliderDiv, frameIndex) {
             const steps = sliderDiv.querySelectorAll(".step");
             steps.forEach((step, index) => {
@@ -112,12 +131,13 @@ async function setup() {
             });
         }
 
+        setInitialParameterValues(device); // Initiale Werte setzen
+
     } catch (error) {
         console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
         return;
     }
 
-    // Aktiviert AudioContext bei Benutzerinteraktion
     document.body.addEventListener("click", () => {
         if (context.state === "suspended") {
             context.resume().then(() => console.log("AudioContext aktiviert."));
@@ -127,7 +147,6 @@ async function setup() {
     console.log(`AudioContext state: ${context.state}`);
 }
 
-// Funktion zum Setzen initialer Werte für RNBO-Parameter
 function setInitialParameterValues(device) {
     const paramsToInitialize = ["c1", "c2", "c3", "c4", "c5", "slicont"];
     paramsToInitialize.forEach((paramId) => {
@@ -136,7 +155,6 @@ function setInitialParameterValues(device) {
     });
 }
 
-// Funktion zum Laden der RNBO-Library
 function loadRNBOScript(version) {
     return new Promise((resolve, reject) => {
         const script = document.createElement("script");
@@ -147,5 +165,4 @@ function loadRNBOScript(version) {
     });
 }
 
-// Starte das Setup
 setup();
