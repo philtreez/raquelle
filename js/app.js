@@ -31,27 +31,25 @@ async function setup() {
         // Initiale Werte für die Parameter setzen
         setInitialParameterValues(device);
 
-        // ------ Steuerung für slicont1 bis slicont5 ------
-        for (let i = 1; i <= 5; i++) {
-            const slicontDiv = document.getElementById(`slicont${i}`);
-            const slicontParam = device.parametersById.get(`slicont${i}`);
+        // ------ Steuerung für slicont (0-5) ------
+        const slicontParam = device.parametersById.get("slicont");
 
-            if (slicontDiv && slicontParam) {
-                device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === slicontParam.id) {
-                        const value = Math.round(param.value); // Rundet auf Integer-Werte
-                        updateSlicontBackground(slicontDiv, value, i);
-                        console.log(`slicont${i} set to value: ${value}`);
-                    }
-                });
-            }
+        if (slicontParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === slicontParam.id) {
+                    const value = Math.round(param.value); // Rundet auf Integer-Werte 0-5
+                    updateSlicontBackground(value);
+                    console.log(`slicont parameter set to: ${value}`);
+                }
+            });
         }
 
-        function updateSlicontBackground(slicontDiv, value, index) {
-            if (value === index) {
-                slicontDiv.style.backgroundColor = "rgba(0, 255, 130, 0.5)";
-            } else {
-                slicontDiv.style.backgroundColor = "transparent";
+        function updateSlicontBackground(value) {
+            for (let i = 1; i <= 5; i++) {
+                const slicontDiv = document.getElementById(`slicont${i}`);
+                if (slicontDiv) {
+                    slicontDiv.style.backgroundColor = (value === i) ? "rgba(0, 255, 130, 0.5)" : "transparent";
+                }
             }
         }
 
@@ -87,7 +85,7 @@ async function setup() {
             steps.forEach((step, index) => {
                 step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
             });
-        }        
+        }
 
     } catch (error) {
         console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
@@ -106,7 +104,7 @@ async function setup() {
 
 // Funktion zum Setzen initialer Werte für RNBO-Parameter
 function setInitialParameterValues(device) {
-    const paramsToInitialize = ["c1", "c2", "c3", "c4", "c5", "slicont1", "slicont2", "slicont3", "slicont4", "slicont5"];
+    const paramsToInitialize = ["c1", "c2", "c3", "c4", "c5", "slicont"];
     paramsToInitialize.forEach((paramId) => {
         const param = device.parametersById.get(paramId);
         if (param) param.value = 0;
