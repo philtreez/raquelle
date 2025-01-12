@@ -88,6 +88,23 @@ async function setup() {
             });
         }
 
+        // ------ kick PNG-Strip Steuerung ------
+        const kickDiv = document.getElementById("kick");
+        const kickParam = device.parametersById.get("kick");
+        const kickContainer = document.getElementById("kick-container");
+
+        if (kickDiv && kickParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === kickParam.id) {
+                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                    const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
+                    kickDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    kickContainer.style.display = (frameIndex === 0) ? "none" : "block";
+                    console.log(`Kick frame set to: ${frameIndex}`);
+                }
+            });
+        }
+
         // ------ Slider Steuerung mit Drag-Funktion (c1 bis c5) ------
         for (let i = 1; i <= 5; i++) {
             const sliderDiv = document.getElementById(`c${i}-slider`);
