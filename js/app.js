@@ -26,6 +26,15 @@ async function setup() {
         device.node.connect(outputNode);
         console.log("RNBO-Device an Audio-Ausgang angeschlossen.");
 
+        // Audio- und Analyser-Node verbinden
+        const analyserNode = context.createAnalyser();
+        analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
+        const bufferLength = analyserNode.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        device.node.connect(analyserNode); // Verbinde Analyser mit Audio
+        analyserNode.connect(outputNode);
+
         // Oszilloskop-Zeichnungsfunktion
         const oscilloscopeCanvas = document.getElementById('oscilloscope');
         oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
@@ -38,8 +47,8 @@ async function setup() {
 
             oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
 
-            oscilloscopeContext.lineWidth = 4;
-            oscilloscopeContext.strokeStyle = "black"; // Farbe der Wellenform
+            oscilloscopeContext.lineWidth = 2;
+            oscilloscopeContext.strokeStyle = "white"; // Farbe der Wellenform
             oscilloscopeContext.beginPath();
 
             const sliceWidth = oscilloscopeCanvas.width / bufferLength;
