@@ -8,7 +8,7 @@ async function setup() {
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
 
-    let patcher, device, isDragging = false, currentSliderIndex = -1;
+    let patcher, device;
 
     try {
         // Lade den RNBO-Patch
@@ -29,91 +29,26 @@ async function setup() {
         // ------ 16-Step-Sequencer Steuerung ------
         for (let i = 1; i <= 16; i++) {
             const sliderDiv = document.getElementById(`w${i}-slider`);
-            const buttonDiv = document.getElementById(`q${i}-button`);
             const sliderParam = device.parametersById.get(`w${i}`);
-            const buttonParam = device.parametersById.get(`q${i}`);
 
             if (sliderDiv && sliderParam) {
-                const steps = sliderDiv.querySelectorAll(".wstep");
+                // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
+                updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
 
-                // Setze initialen Zustand der Slider entsprechend der Parameterwerte
-                updateSliderVisual(sliderDiv, Math.round(sliderParam.value) - 1);
-
-                sliderDiv.addEventListener("mousedown", (event) => {
-                    isDragging = true;
-                    currentSliderIndex = i;
-                    handleStepSelection(event, sliderDiv, steps, sliderParam);
-                });
-
-                sliderDiv.addEventListener("mousemove", (event) => {
-                    if (isDragging && currentSliderIndex === i) {
-                        handleStepSelection(event, sliderDiv, steps, sliderParam);
-                    }
-                });
-
-                sliderDiv.addEventListener("mouseup", () => {
-                    isDragging = false;
-                    currentSliderIndex = -1;
-                });
-
-                sliderDiv.addEventListener("mouseleave", () => {
-                    isDragging = false;
-                    currentSliderIndex = -1;
-                });
-
+                // Event abonnieren, um Änderungen des Sliders zu verfolgen
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === sliderParam.id) {
-                        const frameIndex = Math.round(param.value) - 1;
+                        const frameIndex = Math.round(param.value);
                         updateSliderVisual(sliderDiv, frameIndex);
-                        console.log(`Slider w${i} frame set to: ${frameIndex + 1}`);
+                        console.log(`Slider w${i} frame set to: ${frameIndex}`);
                     }
                 });
-            }
-
-            if (buttonDiv && buttonParam) {
-                // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
-                updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
-
-                buttonDiv.addEventListener("click", () => {
-                    const newValue = buttonParam.value === 0 ? 1 : 0;
-                    buttonParam.value = newValue;
-                    updateButtonVisual(buttonDiv, newValue);
-                    console.log(`Button q${i} set to value: ${newValue}`);
-                });
-
-                device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === buttonParam.id) {
-                        const newValue = Math.round(param.value);
-                        updateButtonVisual(buttonDiv, newValue);
-                        console.log(`Button q${i} updated to: ${newValue}`);
-                    }
-                });
-            }
-        }
-
-        function handleStepSelection(event, sliderDiv, steps, sliderParam) {
-            const rect = sliderDiv.getBoundingClientRect();
-            const y = event.clientY - rect.top;
-            const stepHeight = rect.height / steps.length;
-            const selectedIndex = Math.floor(y / stepHeight);
-
-            if (selectedIndex >= 0 && selectedIndex < steps.length) {
-                sliderParam.value = selectedIndex + 1; // Wertebereich 1-10
-                updateSliderVisual(sliderDiv, selectedIndex);
-                console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex + 1}`);
             }
         }
 
         function updateSliderVisual(sliderDiv, frameIndex) {
-            const steps = sliderDiv.querySelectorAll(".wstep");
-            steps.forEach((step, index) => {
-                step.style.backgroundColor = (index === frameIndex) ? "rgb(0, 255, 130)" : "transparent";
-            });
-        }
-        
-
-        function updateButtonVisual(buttonDiv, value) {
-            buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
+            const frameHeight = 100; // Höhe eines einzelnen Frames im PNG-Strip
+            sliderDiv.style.backgroundPositionY = `-${frameIndex * frameHeight}px`;
         }
 
         // ------ Audio- und Analyser-Node verbinden ------
