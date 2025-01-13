@@ -38,7 +38,7 @@ async function setup() {
         // Oszilloskop-Zeichnungsfunktion
         const oscilloscopeCanvas = document.getElementById('oscilloscope');
         oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
-        oscilloscopeCanvas.height = 110;
+        oscilloscopeCanvas.height = 130;
         const oscilloscopeContext = oscilloscopeCanvas.getContext("2d");
 
         function drawOscilloscope() {
@@ -46,8 +46,8 @@ async function setup() {
             analyserNode.getByteTimeDomainData(dataArray);
 
             oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
-            oscilloscopeContext.lineWidth = 2;
-            oscilloscopeContext.strokeStyle = "white"; // Farbe der Wellenform
+            oscilloscopeContext.lineWidth = 4;
+            oscilloscopeContext.strokeStyle = "rgb(0, 255, 130)"; // Farbe der Wellenform
             oscilloscopeContext.beginPath();
 
             const sliceWidth = oscilloscopeCanvas.width / bufferLength;
