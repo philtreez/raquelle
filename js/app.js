@@ -34,23 +34,20 @@ async function setup() {
             const buttonParam = device.parametersById.get(`q${i}`);
 
             if (sliderDiv && sliderParam) {
-                // Füge das Handle-Element hinzu
-                const handle = document.createElement("div");
-                handle.className = "wslider-handle";
-                sliderDiv.appendChild(handle);
+                const steps = sliderDiv.querySelectorAll(".wstep");
 
                 // Setze initialen Zustand der Slider entsprechend der Parameterwerte
-                updateSliderVisual(sliderDiv, handle, Math.round(sliderParam.value));
+                updateSliderVisual(sliderDiv, Math.round(sliderParam.value) - 1);
 
                 sliderDiv.addEventListener("mousedown", (event) => {
                     isDragging = true;
                     currentSliderIndex = i;
-                    handleStepSelection(event, sliderDiv, handle, sliderParam);
+                    handleStepSelection(event, sliderDiv, steps, sliderParam);
                 });
 
                 sliderDiv.addEventListener("mousemove", (event) => {
                     if (isDragging && currentSliderIndex === i) {
-                        handleStepSelection(event, sliderDiv, handle, sliderParam);
+                        handleStepSelection(event, sliderDiv, steps, sliderParam);
                     }
                 });
 
@@ -66,9 +63,9 @@ async function setup() {
 
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === sliderParam.id) {
-                        const value = Math.round(param.value);
-                        updateSliderVisual(sliderDiv, handle, value);
-                        console.log(`Slider w${i} frame set to: ${value}`);
+                        const frameIndex = Math.round(param.value) - 1;
+                        updateSliderVisual(sliderDiv, frameIndex);
+                        console.log(`Slider w${i} frame set to: ${frameIndex + 1}`);
                     }
                 });
             }
@@ -94,18 +91,24 @@ async function setup() {
             }
         }
 
-        function handleStepSelection(event, sliderDiv, handle, sliderParam) {
+        function handleStepSelection(event, sliderDiv, steps, sliderParam) {
             const rect = sliderDiv.getBoundingClientRect();
             const y = event.clientY - rect.top;
-            const value = Math.max(1, Math.min(10, Math.round((10 * y) / rect.height)));
-            sliderParam.value = value; // Wertebereich 1-10
-            updateSliderVisual(sliderDiv, handle, value);
-            console.log(`Slider ${sliderDiv.id} set to value: ${value}`);
+            const stepHeight = rect.height / steps.length;
+            const selectedIndex = Math.floor(y / stepHeight);
+
+            if (selectedIndex >= 0 && selectedIndex < steps.length) {
+                sliderParam.value = selectedIndex + 1; // Wertebereich 1-10
+                updateSliderVisual(sliderDiv, selectedIndex);
+                console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex + 1}`);
+            }
         }
 
-        function updateSliderVisual(sliderDiv, handle, value) {
-            const percentage = ((10 - value) / 10) * 100; // Umkehrung für vertikales Layout
-            handle.style.top = `${percentage}%`;
+        function updateSliderVisual(sliderDiv, frameIndex) {
+            const steps = sliderDiv.querySelectorAll(".wstep");
+            steps.forEach((step, index) => {
+                step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
+            });
         }
 
         function updateButtonVisual(buttonDiv, value) {
