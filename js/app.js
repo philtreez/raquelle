@@ -8,39 +8,31 @@ async function setup() {
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
 
-    let patcher, device;
+    let patcher, device, isDragging = false, currentSliderIndex = -1;
 
     try {
         // Lade den RNBO-Patch
         const response = await fetch(patchExportURL);
         patcher = await response.json();
 
-        // Lade die RNBO-Library, falls noch nicht verfügbar
         if (!window.RNBO) {
             console.log("Lade RNBO-Bibliothek...");
             await loadRNBOScript(patcher.desc.meta.rnboversion);
         }
 
-        // Erstelle das RNBO-Device
         device = await RNBO.createDevice({ context, patcher });
         console.log("RNBO-Device erfolgreich erstellt.");
 
         device.node.connect(outputNode);
         console.log("RNBO-Device mit Audio-Ausgang verbunden.");
 
-        // Setze die Benachrichtigungseinstellungen für Parameteränderungen
-        // device.setParameterNotificationSetting(RNBO.ParameterNotificationSetting.Internal);
-
-        // Initiale Werte für die Parameter setzen
-        setInitialParameterValues(device);
-
-        // Audio- und Analyser-Node verbinden
+        // ------ Audio- und Analyser-Node verbinden ------
         const analyserNode = context.createAnalyser();
         analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
         const bufferLength = analyserNode.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
 
-        device.node.connect(analyserNode); // Verbinde Analyser mit Audio
+        device.node.connect(analyserNode); // Verbinde Analyser mit dem Audio-Ausgang
         analyserNode.connect(outputNode);
 
         // Oszilloskop-Zeichnungsfunktion
@@ -54,7 +46,6 @@ async function setup() {
             analyserNode.getByteTimeDomainData(dataArray);
 
             oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
-
             oscilloscopeContext.lineWidth = 2;
             oscilloscopeContext.strokeStyle = "white"; // Farbe der Wellenform
             oscilloscopeContext.beginPath();
