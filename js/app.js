@@ -8,7 +8,7 @@ async function setup() {
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
 
-    let patcher, device;
+    let patcher, device, isDragging = false;
 
     try {
         // Lade den RNBO-Patch
@@ -37,13 +37,22 @@ async function setup() {
 
                 // Event Listener für Benutzerinteraktion hinzufügen
                 sliderDiv.addEventListener("mousedown", (event) => {
+                    isDragging = true;
                     handleSliderInteraction(event, sliderDiv, sliderParam);
                 });
 
                 sliderDiv.addEventListener("mousemove", (event) => {
-                    if (event.buttons === 1) { // Nur bei gedrückter Maustaste reagieren
+                    if (isDragging) {
                         handleSliderInteraction(event, sliderDiv, sliderParam);
                     }
+                });
+
+                sliderDiv.addEventListener("mouseup", () => {
+                    isDragging = false;
+                });
+
+                sliderDiv.addEventListener("mouseleave", () => {
+                    isDragging = false;
                 });
 
                 device.parameterChangeEvent.subscribe((param) => {
