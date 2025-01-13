@@ -35,7 +35,6 @@ async function setup() {
                 // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
                 updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
 
-                // Event abonnieren, um Änderungen des Sliders zu verfolgen
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === sliderParam.id) {
                         const frameIndex = Math.round(param.value);
@@ -47,8 +46,9 @@ async function setup() {
         }
 
         function updateSliderVisual(sliderDiv, frameIndex) {
-            const frameHeight = 100; // Höhe eines einzelnen Frames im PNG-Strip
-            sliderDiv.style.backgroundPositionY = `-${frameIndex * frameHeight}px`;
+            const frameHeight = 100; // Höhe eines Frames in px
+            const yOffset = frameIndex * frameHeight; // Berechne Y-Offset basierend auf dem Frame-Index
+            sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
         }
 
         // ------ Audio- und Analyser-Node verbinden ------
