@@ -34,7 +34,7 @@ async function setup() {
             const buttonParam = device.parametersById.get(`q${i}`);
 
             if (sliderDiv && sliderParam) {
-                const steps = sliderDiv.querySelectorAll(".step");
+                const steps = sliderDiv.querySelectorAll(".wstep");
 
                 // Setze initialen Zustand der Slider entsprechend der Parameterwerte
                 updateSliderVisual(sliderDiv, Math.round(sliderParam.value) - 1);
@@ -105,7 +105,7 @@ async function setup() {
         }
 
         function updateSliderVisual(sliderDiv, frameIndex) {
-            const steps = sliderDiv.querySelectorAll(".step");
+            const steps = sliderDiv.querySelectorAll(".wstep");
             steps.forEach((step, index) => {
                 step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
             });
