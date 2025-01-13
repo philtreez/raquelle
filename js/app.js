@@ -8,23 +8,31 @@ async function setup() {
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
 
-    let patcher, device, isDragging = false, currentSliderIndex = -1;
+    let patcher, device;
 
     try {
         // Lade den RNBO-Patch
         const response = await fetch(patchExportURL);
         patcher = await response.json();
 
+        // Lade die RNBO-Library, falls noch nicht verfügbar
         if (!window.RNBO) {
             console.log("Lade RNBO-Bibliothek...");
             await loadRNBOScript(patcher.desc.meta.rnboversion);
         }
 
+        // Erstelle das RNBO-Device
         device = await RNBO.createDevice({ context, patcher });
         console.log("RNBO-Device erfolgreich erstellt.");
 
         device.node.connect(outputNode);
-        console.log("RNBO-Device an Audio-Ausgang angeschlossen.");
+        console.log("RNBO-Device mit Audio-Ausgang verbunden.");
+
+        // Setze die Benachrichtigungseinstellungen für Parameteränderungen
+        // device.setParameterNotificationSetting(RNBO.ParameterNotificationSetting.Internal);
+
+        // Initiale Werte für die Parameter setzen
+        setInitialParameterValues(device);
 
         // Audio- und Analyser-Node verbinden
         const analyserNode = context.createAnalyser();
