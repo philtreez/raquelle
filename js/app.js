@@ -107,9 +107,10 @@ async function setup() {
         function updateSliderVisual(sliderDiv, frameIndex) {
             const steps = sliderDiv.querySelectorAll(".wstep");
             steps.forEach((step, index) => {
-                step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
+                step.style.backgroundColor = (index === frameIndex) ? "rgb(0, 255, 130)" : "transparent";
             });
         }
+        
 
         function updateButtonVisual(buttonDiv, value) {
             buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
