@@ -35,6 +35,17 @@ async function setup() {
                 // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
                 updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
 
+                // Event Listener für Benutzerinteraktion hinzufügen
+                sliderDiv.addEventListener("mousedown", (event) => {
+                    handleSliderInteraction(event, sliderDiv, sliderParam);
+                });
+
+                sliderDiv.addEventListener("mousemove", (event) => {
+                    if (event.buttons === 1) { // Nur bei gedrückter Maustaste reagieren
+                        handleSliderInteraction(event, sliderDiv, sliderParam);
+                    }
+                });
+
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === sliderParam.id) {
                         const frameIndex = Math.round(param.value);
@@ -43,6 +54,18 @@ async function setup() {
                     }
                 });
             }
+        }
+
+        function handleSliderInteraction(event, sliderDiv, sliderParam) {
+            const rect = sliderDiv.getBoundingClientRect();
+            const y = event.clientY - rect.top;
+            const stepHeight = rect.height / 11; // 11 Schritte (0-10)
+            let selectedIndex = Math.floor(y / stepHeight);
+            selectedIndex = Math.max(0, Math.min(10, selectedIndex)); // Begrenzen auf 0-10
+
+            sliderParam.value = selectedIndex;
+            updateSliderVisual(sliderDiv, selectedIndex);
+            console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex}`);
         }
 
         function updateSliderVisual(sliderDiv, frameIndex) {
