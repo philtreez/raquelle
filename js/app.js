@@ -37,7 +37,6 @@ async function setup() {
                 const steps = sliderDiv.querySelectorAll(".wstep");
 
                 // Setze initialen Zustand der Slider entsprechend der Parameterwerte
-                console.log(`Initial slider w${i} value:`, sliderParam.value);
                 updateSliderVisual(sliderDiv, Math.round(sliderParam.value) - 1);
 
                 sliderDiv.addEventListener("mousedown", (event) => {
@@ -65,15 +64,14 @@ async function setup() {
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === sliderParam.id) {
                         const frameIndex = Math.round(param.value) - 1;
-                        console.log(`Slider w${i} frame set to: ${frameIndex + 1}`);
                         updateSliderVisual(sliderDiv, frameIndex);
+                        console.log(`Slider w${i} frame set to: ${frameIndex + 1}`);
                     }
                 });
             }
 
             if (buttonDiv && buttonParam) {
                 // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
-                console.log(`Initial button q${i} value:`, buttonParam.value);
                 updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
 
                 buttonDiv.addEventListener("click", () => {
@@ -86,8 +84,8 @@ async function setup() {
                 device.parameterChangeEvent.subscribe((param) => {
                     if (param.id === buttonParam.id) {
                         const newValue = Math.round(param.value);
-                        console.log(`Button q${i} updated to: ${newValue}`);
                         updateButtonVisual(buttonDiv, newValue);
+                        console.log(`Button q${i} updated to: ${newValue}`);
                     }
                 });
             }
@@ -107,11 +105,11 @@ async function setup() {
         }
 
         function updateSliderVisual(sliderDiv, frameIndex) {
-            console.log(`Updating slider ${sliderDiv.id} to frameIndex: ${frameIndex}`);
             const steps = sliderDiv.querySelectorAll(".wstep");
             steps.forEach((step, index) => {
                 step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
             });
+            console.log(`Updated slider ${sliderDiv.id} visual to frame ${frameIndex + 1}`);
         }
 
         function updateButtonVisual(buttonDiv, value) {
