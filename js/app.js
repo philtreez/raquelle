@@ -54,8 +54,8 @@ async function setup() {
             let x = 0;
 
             for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 512.0;
-                const y = (v * oscilloscopeCanvas.height) / 4;
+                const v = dataArray[i] / 128.0;
+                const y = (v * oscilloscopeCanvas.height) / 2;
 
                 if (i === 0) {
                     oscilloscopeContext.moveTo(x, y);
