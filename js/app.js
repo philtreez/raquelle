@@ -38,7 +38,7 @@ async function setup() {
         // Oszilloskop-Zeichnungsfunktion
         const oscilloscopeCanvas = document.getElementById('oscilloscope');
         oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
-        oscilloscopeCanvas.height = 130;
+        oscilloscopeCanvas.height = 230;
         const oscilloscopeContext = oscilloscopeCanvas.getContext("2d");
 
         function drawOscilloscope() {
