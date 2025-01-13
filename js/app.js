@@ -38,8 +38,8 @@ async function setup() {
 
             oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
 
-            oscilloscopeContext.lineWidth = 2;
-            oscilloscopeContext.strokeStyle = "white"; // Farbe der Wellenform
+            oscilloscopeContext.lineWidth = 4;
+            oscilloscopeContext.strokeStyle = "black"; // Farbe der Wellenform
             oscilloscopeContext.beginPath();
 
             const sliceWidth = oscilloscopeCanvas.width / bufferLength;
