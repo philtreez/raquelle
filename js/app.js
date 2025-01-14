@@ -1,121 +1,87 @@
-// ------ RNBO integration ------
-async function setup() {
-    console.log("Setup gestartet...");
+    // ------ RNBO integration ------
+    async function setup() {
+        console.log("Setup gestartet...");
 
-    const patchExportURL = "https://raquelle-philtreezs-projects.vercel.app/export/patch.export.json"; // Passe die URL deines Patches an
-    const WAContext = window.AudioContext || window.webkitAudioContext;
-    const context = new WAContext();
-    const outputNode = context.createGain();
-    outputNode.connect(context.destination);
+        const patchExportURL = "https://raquelle-philtreezs-projects.vercel.app/export/patch.export.json"; // Passe die URL deines Patches an
+        const WAContext = window.AudioContext || window.webkitAudioContext;
+        const context = new WAContext();
+        const outputNode = context.createGain();
+        outputNode.connect(context.destination);
 
-    let patcher, device;
+        let patcher, device;
 
-    try {
-        // Lade den RNBO-Patch
-        const response = await fetch(patchExportURL);
-        patcher = await response.json();
+        try {
+            // Lade den RNBO-Patch
+            const response = await fetch(patchExportURL);
+            patcher = await response.json();
 
-        if (!window.RNBO) {
-            console.log("Lade RNBO-Bibliothek...");
-            await loadRNBOScript(patcher.desc.meta.rnboversion);
+            if (!window.RNBO) {
+                console.log("Lade RNBO-Bibliothek...");
+                await loadRNBOScript(patcher.desc.meta.rnboversion);
+            }
+
+            device = await RNBO.createDevice({ context, patcher });
+            console.log("RNBO-Device erfolgreich erstellt.");
+
+            device.node.connect(outputNode);
+            console.log("RNBO-Device an Audio-Ausgang verbunden.");
+
+            setupButtons(device, 'b'); // Buttons b1-b16 initialisieren
+            setupButtons(device, 'e'); // Buttons e1-e16 initialisieren
+            setupButtons(device, 'q'); // Buttons q1-q16 initialisieren
+            setupButtons(device, 'r'); // Buttons r1-r16 initialisieren
+
+            setInitialParameterValues(device); // Initiale Werte setzen
+            setupOscilloscope(context, device, outputNode);
+            setupLightVisualization(device);
+
+        } catch (error) {
+            console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
+            return;
         }
 
-        device = await RNBO.createDevice({ context, patcher });
-        console.log("RNBO-Device erfolgreich erstellt.");
+        document.body.addEventListener("click", () => {
+            if (context.state === "suspended") {
+                context.resume().then(() => console.log("AudioContext aktiviert."));
+            }
+        });
 
-        device.node.connect(outputNode);
-        console.log("RNBO-Device an Audio-Ausgang verbunden.");
+        console.log(`AudioContext state: ${context.state}`);
+    }
 
-        setupButtons(device); // Buttons initialisieren
-        setupSlider(device); // Buttons initialisieren
+    function setupButtons(device, prefix) {
+        for (let i = 1; i <= 16; i++) {
+            const buttonId = `${prefix}${i}`;
+            const buttonDiv = document.getElementById(buttonId);
+            const buttonParam = device.parametersById.get(buttonId);
 
-        function setupSlider(device) {
-            const sliderDiv = document.getElementById("w1-slider");
-            const sliderParam = device.parametersById.get("w1");
-        
-            if (sliderDiv && sliderParam) {
-                // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
-                updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
-        
-                let isDragging = false;
-                let startY = 0;
-                let currentY = 0;
-        
-                // Maus-Event-Handler für Dragging
-                sliderDiv.addEventListener("mousedown", (event) => {
-                    isDragging = true;
-                    startY = event.clientY - currentY;
-                    document.addEventListener("mousemove", onMouseMove);
-                    document.addEventListener("mouseup", onMouseUp);
+            if (buttonDiv && buttonParam) {
+                // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
+                updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
+
+                buttonDiv.addEventListener("click", () => {
+                    const newValue = buttonParam.value === 0 ? 1 : 0;
+                    buttonParam.value = newValue;
+                    updateButtonVisual(buttonDiv, newValue);
+                    console.log(`${buttonId} state set to: ${newValue}`);
                 });
-        
-                function onMouseMove(event) {
-                    if (!isDragging) return;
-                    const rect = sliderDiv.getBoundingClientRect();
-                    currentY = Math.min(Math.max(event.clientY - startY, 0), rect.height - 156); // Begrenze den Bereich
-                    sliderDiv.style.transform = `translateY(${currentY}px)`;
-        
-                    // Slider-Wert berechnen und an RNBO senden
-                    const sliderValue = Math.round((currentY / (rect.height - 156)) * 10);
-                    sliderParam.value = sliderValue;
-                    console.log(`Slider w1 set to value: ${sliderValue}`);
-                }
-        
-                function onMouseUp() {
-                    isDragging = false;
-                    document.removeEventListener("mousemove", onMouseMove);
-                    document.removeEventListener("mouseup", onMouseUp);
-                }
-        
+
                 device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === sliderParam.id) {
-                        const frameIndex = Math.round(param.value);
-                        updateSliderVisual(sliderDiv, frameIndex);
-                        console.log(`Slider w1 frame set to: ${frameIndex}`);
+                    if (param.id === buttonParam.id) {
+                        const newValue = Math.round(param.value);
+                        updateButtonVisual(buttonDiv, newValue);
+                        console.log(`${buttonId} updated to: ${newValue}`);
                     }
                 });
             }
-        
-            function updateSliderVisual(sliderDiv, frameIndex) {
-                const frameHeight = 100; // Höhe eines einzelnen Frames in px
-                const yOffset = frameIndex * frameHeight; // Y-Versatz für den aktuellen Frame
-                sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
-            }
-        }                     
-
-        function setupButtons(device) {
-            for (let i = 1; i <= 16; i++) {
-                const buttonId = `b${i}`;
-                const buttonDiv = document.getElementById(buttonId);
-                const buttonParam = device.parametersById.get(buttonId);
-        
-                if (buttonDiv && buttonParam) {
-                    // Initialer Zustand des Buttons
-                    updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
-        
-                    buttonDiv.addEventListener("click", () => {
-                        const newValue = buttonParam.value === 0 ? 1 : 0;
-                        buttonParam.value = newValue;
-                        updateButtonVisual(buttonDiv, newValue);
-                        console.log(`${buttonId} state set to: ${newValue}`);
-                    });
-        
-                    device.parameterChangeEvent.subscribe((param) => {
-                        if (param.id === buttonParam.id) {
-                            const newValue = Math.round(param.value);
-                            updateButtonVisual(buttonDiv, newValue);
-                            console.log(`${buttonId} updated to: ${newValue}`);
-                        }
-                    });
-                }
-            }
-        
-            function updateButtonVisual(buttonDiv, value) {
-                buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
-            }
         }
 
-        // ------ Audio- und Analyser-Node verbinden ------
+        function updateButtonVisual(buttonDiv, value) {
+            buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
+        }
+    }
+
+    function setupOscilloscope(context, device, outputNode) {
         const analyserNode = context.createAnalyser();
         analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
         const bufferLength = analyserNode.frequencyBinCount;
@@ -124,7 +90,6 @@ async function setup() {
         device.node.connect(analyserNode); // Verbinde Analyser mit dem Audio-Ausgang
         analyserNode.connect(outputNode);
 
-        // Oszilloskop-Zeichnungsfunktion
         const oscilloscopeCanvas = document.getElementById('oscilloscope');
         oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
         oscilloscopeCanvas.height = 230;
@@ -160,6 +125,7 @@ async function setup() {
         }
 
         drawOscilloscope(); // Zeichnen starten
+    
 
         // Parameter zur Steuerung der Sichtbarkeit abonnieren
         const chorderParam = device.parametersById.get("chorder"); // Name des RNBO-Parameters
@@ -248,6 +214,7 @@ async function setup() {
                 }
             }
         }
+
 
         // ------ ki-Button Steuerung ------
         const kiButton = document.getElementById("ki");
@@ -443,37 +410,32 @@ async function setup() {
         }
 
         setInitialParameterValues(device); // Initiale Werte setzen
+    
 
-    } catch (error) {
-        console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
-        return;
+        document.body.addEventListener("click", () => {
+            if (context.state === "suspended") {
+                context.resume().then(() => console.log("AudioContext aktiviert."));
+            }
+        });
     }
 
-    document.body.addEventListener("click", () => {
-        if (context.state === "suspended") {
-            context.resume().then(() => console.log("AudioContext aktiviert."));
-        }
-    });
 
-    console.log(`AudioContext state: ${context.state}`);
-}
+    function setInitialParameterValues(device) {
+        const initialValues = { c1: 4, c2: 5, c3: 5, c4: 5, c5: 6, slicont: 0 };
+        Object.keys(initialValues).forEach((paramId) => {
+            const param = device.parametersById.get(paramId);
+            if (param) param.value = initialValues[paramId];
+        });
+    }
 
-function setInitialParameterValues(device) {
-    const initialValues = { c1: 4, c2: 5, c3: 5, c4: 5, c5: 6, slicont: 0 };
-    Object.keys(initialValues).forEach((paramId) => {
-        const param = device.parametersById.get(paramId);
-        if (param) param.value = initialValues[paramId];
-    });
-}
-
-function loadRNBOScript(version) {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement("script");
-        script.src = `https://js.cdn.cycling74.com/rnbo/${encodeURIComponent(version)}/rnbo.min.js`;
-        script.onload = resolve;
-        script.onerror = () => reject(new Error(`Failed to load RNBO library version ${version}`));
-        document.body.appendChild(script);
-    });
-}
+    function loadRNBOScript(version) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = `https://js.cdn.cycling74.com/rnbo/${encodeURIComponent(version)}/rnbo.min.js`;
+            script.onload = resolve;
+            script.onerror = () => reject(new Error(`Failed to load RNBO library version ${version}`));
+            document.body.appendChild(script);
+        });
+    }
 
 setup();
