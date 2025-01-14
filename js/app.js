@@ -26,6 +26,9 @@ async function setup() {
         device.node.connect(outputNode);
         console.log("RNBO-Device an Audio-Ausgang verbunden.");
 
+        setupButtons(device); // Buttons initialisieren
+        setupSlider(device); // Buttons initialisieren
+
         function setupSlider(device) {
             const sliderDiv = document.getElementById("w1-slider");
             const sliderParam = device.parametersById.get("w1");
@@ -79,6 +82,38 @@ async function setup() {
                 sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
             }
         }                     
+
+        function setupButtons(device) {
+            for (let i = 1; i <= 16; i++) {
+                const buttonId = `b${i}`;
+                const buttonDiv = document.getElementById(buttonId);
+                const buttonParam = device.parametersById.get(buttonId);
+        
+                if (buttonDiv && buttonParam) {
+                    // Initialer Zustand des Buttons
+                    updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
+        
+                    buttonDiv.addEventListener("click", () => {
+                        const newValue = buttonParam.value === 0 ? 1 : 0;
+                        buttonParam.value = newValue;
+                        updateButtonVisual(buttonDiv, newValue);
+                        console.log(`${buttonId} state set to: ${newValue}`);
+                    });
+        
+                    device.parameterChangeEvent.subscribe((param) => {
+                        if (param.id === buttonParam.id) {
+                            const newValue = Math.round(param.value);
+                            updateButtonVisual(buttonDiv, newValue);
+                            console.log(`${buttonId} updated to: ${newValue}`);
+                        }
+                    });
+                }
+            }
+        
+            function updateButtonVisual(buttonDiv, value) {
+                buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
+            }
+        }
 
         // ------ Audio- und Analyser-Node verbinden ------
         const analyserNode = context.createAnalyser();
@@ -213,42 +248,6 @@ async function setup() {
                 }
             }
         }
-
-
-        // ------ b1-b16 Button Steuerung ------
-        for (let i = 1; i <= 16; i++) {
-            const buttonId = `b${i}`;
-            const buttonDiv = document.getElementById(buttonId);
-            const buttonParam = device.parametersById.get(buttonId);
-
-            if (buttonDiv && buttonParam) {
-                // Initialer Zustand des Buttons entsprechend des aktuellen Parameterwerts
-                updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
-
-                // Event Listener für Benutzerklick
-                buttonDiv.addEventListener("click", () => {
-                    const newValue = buttonParam.value === 0 ? 1 : 0;
-                    buttonParam.value = newValue;
-                    updateButtonVisual(buttonDiv, newValue);
-                    console.log(`${buttonId} state set to: ${newValue}`);
-                });
-
-                // Reagiere auf Änderungen des Parameters im Patch
-                device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === buttonParam.id) {
-                        const newValue = Math.round(param.value);
-                        updateButtonVisual(buttonDiv, newValue);
-                        console.log(`${buttonId} updated to: ${newValue}`);
-                    }
-                });
-            }
-        }
-
-        // Funktion zur Aktualisierung der Button-Visualisierung
-        function updateButtonVisual(buttonDiv, value) {
-            buttonDiv.style.opacity = value === 1 ? "0" : "1"; // Transparent, wenn Wert 1 ist
-        }
-
 
         // ------ ki-Button Steuerung ------
         const kiButton = document.getElementById("ki");
