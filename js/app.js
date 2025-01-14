@@ -381,5 +381,3 @@ function loadRNBOScript(version) {
 }
 
 setup();
-
-setupButtons(device);
