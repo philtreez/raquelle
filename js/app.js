@@ -200,6 +200,40 @@ async function setup() {
             });
         }
 
+        // ------ hat PNG-Strip Steuerung ------
+        const hatDiv = document.getElementById("hat");
+        const hatParam = device.parametersById.get("hat");
+        const hatContainer = document.getElementById("hat-container");
+
+        if (hatDiv && hatParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === hatParam.id) {
+                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                    const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
+                    hatDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    hatContainer.style.display = (frameIndex === 0) ? "none" : "block";
+                    console.log(`hat frame set to: ${frameIndex}`);
+                }
+            });
+        }
+
+        // ------ snr PNG-Strip Steuerung ------
+        const snrDiv = document.getElementById("snr");
+        const snrParam = device.parametersById.get("snr");
+        const snrContainer = document.getElementById("snr-container");
+
+        if (snrDiv && snrParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === snrParam.id) {
+                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                    const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
+                    snrDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    snrContainer.style.display = (frameIndex === 0) ? "none" : "block";
+                    console.log(`snr frame set to: ${frameIndex}`);
+                }
+            });
+        }
+
         // ------ clap PNG-Strip Steuerung ------
         const clapDiv = document.getElementById("clap");
         const clapParam = device.parametersById.get("clap");
