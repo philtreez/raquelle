@@ -81,54 +81,59 @@ function setupButtons(device, prefix) {
     }
 }
 
-function setupRotarySlider(device) {
-    const sliderDiv = document.getElementById('sli-slider');
-    const sliderParam = device.parametersById.get('sli');
+// ------ Slider Steuerung ------
+async function setupSlider(device) {
+    const sliderParam = device.parametersById.get('sli'); // RNBO-Parameter 'sli' (0-1)
+    const sliderSvg = document.getElementById('sli-slider'); // SVG mit ID 'sli-slider'
+    const sliderKnob = sliderSvg.querySelector('#Ebene_2 rect'); // Rechteck (Regler)
 
-    if (sliderDiv && sliderParam) {
-        // Setze initialen Zustand des Sliders entsprechend des Parameterwertes
-        updateSliderVisual(sliderDiv, Math.round(sliderParam.value * 10));
+    const sliderHeight = 120; // Gesamthöhe der Sliderlinie
+    const knobHeight = 18.84; // Höhe des Rechtecks (Regler)
 
-        sliderDiv.addEventListener("mousedown", startDragging);
-        document.addEventListener("mousemove", dragSlider);
-        document.addEventListener("mouseup", stopDragging);
+    // Initialen Zustand setzen
+    updateSliderVisual(sliderParam.value);
 
-        let isDragging = false;
+    // Event-Listener für Dragging hinzufügen
+    let isDragging = false;
+    sliderSvg.addEventListener('mousedown', (event) => {
+        isDragging = true;
+        handleSliderMove(event);
+    });
 
-        function startDragging(event) {
-            isDragging = true;
-            dragSlider(event);
+    window.addEventListener('mousemove', (event) => {
+        if (isDragging) {
+            handleSliderMove(event);
         }
+    });
 
-        function dragSlider(event) {
-            if (!isDragging) return;
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
 
-            const rect = sliderDiv.getBoundingClientRect();
-            const y = event.clientY - rect.top;
-            const normalizedValue = Math.max(0, Math.min(1, 1 - y / rect.height));
-            sliderParam.value = normalizedValue;
-            updateSliderVisual(sliderDiv, Math.round(normalizedValue * 10));
-            console.log(`Slider sli set to value: ${normalizedValue.toFixed(2)}`);
-        }
+    function handleSliderMove(event) {
+        const rect = sliderSvg.getBoundingClientRect();
+        const y = event.clientY - rect.top;
+        let value = 1 - y / sliderHeight; // Umrechnen auf Wertebereich 0-1
+        value = Math.max(0, Math.min(1, value)); // Begrenzen auf 0-1
 
-        function stopDragging() {
-            isDragging = false;
-        }
-
-        device.parameterChangeEvent.subscribe((param) => {
-            if (param.id === sliderParam.id) {
-                const frameIndex = Math.round(param.value * 10);
-                updateSliderVisual(sliderDiv, frameIndex);
-                console.log(`Slider sli updated to frame: ${frameIndex}`);
-            }
-        });
+        sliderParam.value = value; // RNBO-Parameter aktualisieren
+        updateSliderVisual(value);
+        console.log(`Slider set to value: ${value}`);
     }
 
-    function updateSliderVisual(sliderDiv, frameIndex) {
-        const frameHeight = 200; // Höhe eines einzelnen Frames in px
-        const yOffset = frameIndex * frameHeight; // Y-Versatz für den aktuellen Frame
-        sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
+    // Funktion zur Aktualisierung der Slider-Position
+    function updateSliderVisual(value) {
+        const knobY = (1 - value) * (sliderHeight - knobHeight); // Y-Position des Reglers
+        sliderKnob.setAttribute('y', knobY);
     }
+
+    // Auf RNBO-Parameteränderungen reagieren
+    device.parameterChangeEvent.subscribe((param) => {
+        if (param.id === sliderParam.id) {
+            updateSliderVisual(param.value);
+            console.log(`Slider updated to: ${param.value}`);
+        }
+    });
 }
 
 
