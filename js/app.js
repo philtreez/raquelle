@@ -69,11 +69,11 @@ async function setup() {
         }
 
         function updateSliderVisual(sliderDiv, frameIndex) {
-            const frameHeight = 100; // Höhe eines Frames
-            const yOffset = frameIndex * frameHeight; // Berechne Y-Versatz basierend auf dem Frame-Index
+            const frameHeight = 100; // Höhe eines einzelnen Frames in px
+            const yOffset = frameIndex * frameHeight; // Y-Versatz für den aktuellen Frame
             sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
-            console.log(`Setting background position to: 0 -${yOffset}px`);
-        }               
+            console.log(`Slider w1 frame set to: ${frameIndex}, background position: 0 -${yOffset}px`);
+        }                     
 
         // ------ Audio- und Analyser-Node verbinden ------
         const analyserNode = context.createAnalyser();
