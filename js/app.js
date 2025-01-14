@@ -164,7 +164,7 @@ function setupOscilloscope(context, device, outputNode) {
         let x = 0;
 
         for (let i = 0; i < bufferLength; i++) {
-            const v = dataArray[i] / 128.0;
+            const v = dataArray[i] / 56.0;
             const y = (v * oscilloscopeCanvas.height) / 2;
 
             if (i === 0) {
