@@ -9,7 +9,6 @@ async function setup() {
     outputNode.connect(context.destination);
 
     let patcher, device;
-    let isDragging = false;
 
     try {
         // Lade den RNBO-Patch
@@ -183,6 +182,21 @@ async function setup() {
             });
         }
 
+                // ------ b1-b16 Button Steuerung ------
+        for (let i = 1; i <= 16; i++) {
+            const buttonId = `b${i}`;
+            const buttonDiv = document.getElementById(buttonId);
+            const buttonParam = device.parametersById.get(buttonId);
+
+            if (buttonDiv && buttonParam) {
+                buttonDiv.addEventListener("click", () => {
+                    const newValue = buttonParam.value === 0 ? 1 : 0;
+                    buttonParam.value = newValue;
+                    console.log(`${buttonId} state set to: ${newValue}`);
+                });
+            }
+        }
+
         // ------ kick PNG-Strip Steuerung ------
         const kickDiv = document.getElementById("kick");
         const kickParam = device.parametersById.get("kick");
@@ -249,37 +263,6 @@ async function setup() {
                     console.log(`clap frame set to: ${frameIndex}`);
                 }
             });
-        }
-
-        function setupButtons(device) {
-            for (let i = 1; i <= 16; i++) {
-                const buttonDiv = document.getElementById(`b${i}`);
-                const buttonParam = device.parametersById.get(`b${i}`);
-        
-                if (buttonDiv && buttonParam) {
-                    // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
-                    updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
-        
-                    buttonDiv.addEventListener("click", () => {
-                        const newValue = buttonParam.value === 0 ? 1 : 0;
-                        buttonParam.value = newValue;
-                        updateButtonVisual(buttonDiv, newValue);
-                        console.log(`Button b${i} set to value: ${newValue}`);
-                    });
-        
-                    device.parameterChangeEvent.subscribe((param) => {
-                        if (param.id === buttonParam.id) {
-                            const newValue = Math.round(param.value);
-                            updateButtonVisual(buttonDiv, newValue);
-                            console.log(`Button b${i} updated to: ${newValue}`);
-                        }
-                    });
-                }
-            }
-        
-            function updateButtonVisual(buttonDiv, value) {
-                buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
-            }
         }
         
 
