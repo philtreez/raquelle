@@ -290,6 +290,33 @@ function setupLightVisualization(device) {
         }
 
 
+        // ------ Li-Visualisierung ------
+        const maxLi = 16; // Anzahl der Lichter (1-16)
+        const liClassPrefix = "li"; // Klassenname-Präfix
+
+        const liParam = device.parametersById.get("li");
+
+        if (liParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === liParam.id) {
+                    const liValue = Math.round(param.value); // Wert zwischen 1 und 16
+                    updateLiVisual(liValue);
+                    console.log(`Li visual set to: ${liValue}`);
+                }
+            });
+        }
+
+        function updateLiVisual(activeLi) {
+            for (let i = 1; i <= maxLi; i++) {
+                const liElement = document.querySelector(`.${liClassPrefix}${i}`);
+                if (liElement) {
+                    // Sichtbarkeit steuern: nur das aktive Licht sichtbar machen
+                    liElement.style.visibility = i === activeLi ? "visible" : "hidden";
+                }
+            }
+        }
+
+
         // ------ ki-Button Steuerung ------
         const kiButton = document.getElementById("ki");
         const kiParam = device.parametersById.get("ki");
