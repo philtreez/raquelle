@@ -8,7 +8,7 @@ async function setup() {
     const outputNode = context.createGain();
     outputNode.connect(context.destination);
 
-    let patcher, device, isDragging = false;
+    let patcher, device;
 
     try {
         // Lade den RNBO-Patch
@@ -26,46 +26,36 @@ async function setup() {
         device.node.connect(outputNode);
         console.log("RNBO-Device an Audio-Ausgang verbunden.");
 
-        // ------ 16-Step-Sequencer Steuerung ------
-        for (let i = 1; i <= 16; i++) {
-            const sliderDiv = document.getElementById(`w${i}-slider`);
-            const sliderParam = device.parametersById.get(`w${i}`);
+        // ------ Einzelner Slider für w1 ------
+        const sliderDiv = document.getElementById('w1-slider');
+        const sliderParam = device.parametersById.get('w1');
 
-            if (sliderDiv && sliderParam) {
-                // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
-                updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
+        if (sliderDiv && sliderParam) {
+            // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
+            updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
 
-                // Event Listener für Benutzerinteraktion hinzufügen
-                sliderDiv.addEventListener("mousedown", (event) => {
-                    isDragging = true;
-                    handleSliderInteraction(event, sliderDiv, sliderParam);
-                });
+            // Event Listener für Benutzerinteraktion hinzufügen
+            sliderDiv.addEventListener("mousedown", (event) => {
+                handleSliderDrag(event, sliderDiv, sliderParam);
+            });
 
-                sliderDiv.addEventListener("mousemove", (event) => {
-                    if (isDragging) {
-                        handleSliderInteraction(event, sliderDiv, sliderParam);
-                    }
-                });
+            sliderDiv.addEventListener("mousemove", (event) => {
+                if (event.buttons === 1) {
+                    handleSliderDrag(event, sliderDiv, sliderParam);
+                }
+            });
 
-                sliderDiv.addEventListener("mouseup", () => {
-                    isDragging = false;
-                });
-
-                sliderDiv.addEventListener("mouseleave", () => {
-                    isDragging = false;
-                });
-
-                device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === sliderParam.id) {
-                        const frameIndex = Math.round(param.value);
-                        updateSliderVisual(sliderDiv, frameIndex);
-                        console.log(`Slider w${i} frame set to: ${frameIndex}`);
-                    }
-                });
-            }
+            // RNBO-Parameteränderungen anzeigen
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === sliderParam.id) {
+                    const frameIndex = Math.round(param.value);
+                    updateSliderVisual(sliderDiv, frameIndex);
+                    console.log(`Slider w1 frame set to: ${frameIndex}`);
+                }
+            });
         }
 
-        function handleSliderInteraction(event, sliderDiv, sliderParam) {
+        function handleSliderDrag(event, sliderDiv, sliderParam) {
             const rect = sliderDiv.getBoundingClientRect();
             const y = event.clientY - rect.top;
             const stepHeight = rect.height / 11; // 11 Schritte (0-10)
@@ -74,7 +64,7 @@ async function setup() {
 
             sliderParam.value = selectedIndex;
             updateSliderVisual(sliderDiv, selectedIndex);
-            console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex}`);
+            console.log(`Slider w1 set to value: ${selectedIndex}`);
         }
 
         function updateSliderVisual(sliderDiv, frameIndex) {
