@@ -9,6 +9,7 @@ async function setup() {
     outputNode.connect(context.destination);
 
     let patcher, device;
+    let isDragging = false;
 
     try {
         // Lade den RNBO-Patch
