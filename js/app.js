@@ -215,20 +215,40 @@ async function setup() {
         }
 
 
-                // ------ b1-b16 Button Steuerung ------
+        // ------ b1-b16 Button Steuerung ------
         for (let i = 1; i <= 16; i++) {
             const buttonId = `b${i}`;
             const buttonDiv = document.getElementById(buttonId);
             const buttonParam = device.parametersById.get(buttonId);
 
             if (buttonDiv && buttonParam) {
+                // Initialer Zustand des Buttons entsprechend des aktuellen Parameterwerts
+                updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
+
+                // Event Listener für Benutzerklick
                 buttonDiv.addEventListener("click", () => {
                     const newValue = buttonParam.value === 0 ? 1 : 0;
                     buttonParam.value = newValue;
+                    updateButtonVisual(buttonDiv, newValue);
                     console.log(`${buttonId} state set to: ${newValue}`);
+                });
+
+                // Reagiere auf Änderungen des Parameters im Patch
+                device.parameterChangeEvent.subscribe((param) => {
+                    if (param.id === buttonParam.id) {
+                        const newValue = Math.round(param.value);
+                        updateButtonVisual(buttonDiv, newValue);
+                        console.log(`${buttonId} updated to: ${newValue}`);
+                    }
                 });
             }
         }
+
+        // Funktion zur Aktualisierung der Button-Visualisierung
+        function updateButtonVisual(buttonDiv, value) {
+            buttonDiv.style.opacity = value === 1 ? "0" : "1"; // Transparent, wenn Wert 1 ist
+        }
+
 
         // ------ ki-Button Steuerung ------
         const kiButton = document.getElementById("ki");
