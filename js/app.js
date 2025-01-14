@@ -251,6 +251,38 @@ async function setup() {
             });
         }
 
+        function setupButtons(device) {
+            for (let i = 1; i <= 16; i++) {
+                const buttonDiv = document.getElementById(`b${i}`);
+                const buttonParam = device.parametersById.get(`b${i}`);
+        
+                if (buttonDiv && buttonParam) {
+                    // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
+                    updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
+        
+                    buttonDiv.addEventListener("click", () => {
+                        const newValue = buttonParam.value === 0 ? 1 : 0;
+                        buttonParam.value = newValue;
+                        updateButtonVisual(buttonDiv, newValue);
+                        console.log(`Button b${i} set to value: ${newValue}`);
+                    });
+        
+                    device.parameterChangeEvent.subscribe((param) => {
+                        if (param.id === buttonParam.id) {
+                            const newValue = Math.round(param.value);
+                            updateButtonVisual(buttonDiv, newValue);
+                            console.log(`Button b${i} updated to: ${newValue}`);
+                        }
+                    });
+                }
+            }
+        
+            function updateButtonVisual(buttonDiv, value) {
+                buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
+            }
+        }
+        
+
         // ------ Slider Steuerung mit Drag-Funktion (c1 bis c5) ------
         for (let i = 1; i <= 5; i++) {
             const sliderDiv = document.getElementById(`c${i}-slider`);
