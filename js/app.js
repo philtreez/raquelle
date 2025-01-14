@@ -181,7 +181,9 @@ function setupOscilloscope(context, device, outputNode) {
     }
 
     drawOscilloscope(); // Zeichnen starten
-}
+
+    setupSlider(device); // Slider einrichten
+
 
 function setupLightVisualization(device) {
     const maxLights = 16; // Anzahl der Lichter (1-16)
@@ -209,52 +211,6 @@ function setupLightVisualization(device) {
         }
     }
 }
-
-
-    function setupOscilloscope(context, device, outputNode) {
-        const analyserNode = context.createAnalyser();
-        analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
-        const bufferLength = analyserNode.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-
-        device.node.connect(analyserNode); // Verbinde Analyser mit dem Audio-Ausgang
-        analyserNode.connect(outputNode);
-
-        const oscilloscopeCanvas = document.getElementById('oscilloscope');
-        oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
-        oscilloscopeCanvas.height = 230;
-        const oscilloscopeContext = oscilloscopeCanvas.getContext("2d");
-
-        function drawOscilloscope() {
-            requestAnimationFrame(drawOscilloscope);
-            analyserNode.getByteTimeDomainData(dataArray);
-
-            oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
-            oscilloscopeContext.lineWidth = 4;
-            oscilloscopeContext.strokeStyle = "rgb(0, 255, 130)"; // Farbe der Wellenform
-            oscilloscopeContext.beginPath();
-
-            const sliceWidth = oscilloscopeCanvas.width / bufferLength;
-            let x = 0;
-
-            for (let i = 0; i < bufferLength; i++) {
-                const v = dataArray[i] / 128.0;
-                const y = (v * oscilloscopeCanvas.height) / 2;
-
-                if (i === 0) {
-                    oscilloscopeContext.moveTo(x, y);
-                } else {
-                    oscilloscopeContext.lineTo(x, y);
-                }
-
-                x += sliceWidth;
-            }
-
-            oscilloscopeContext.lineTo(oscilloscopeCanvas.width, oscilloscopeCanvas.height / 2);
-            oscilloscopeContext.stroke();
-        }
-
-        drawOscilloscope(); // Zeichnen starten
     
 
         // Parameter zur Steuerung der Sichtbarkeit abonnieren
