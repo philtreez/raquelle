@@ -230,6 +230,55 @@ async function setup() {
             }
         }
 
+        // ------ ki-Button Steuerung ------
+        const kiButton = document.getElementById("ki");
+        const kiParam = device.parametersById.get("ki");
+
+        if (kiButton && kiParam) {
+            kiButton.addEventListener("click", () => {
+                const newValue = kiParam.value === 0 ? 1 : 0;
+                kiParam.value = newValue;
+                console.log(`ki state set to: ${newValue}`);
+            });
+        }
+
+        // ------ sn-Button Steuerung ------
+        const snButton = document.getElementById("sn");
+        const snParam = device.parametersById.get("sn");
+
+        if (snButton && snParam) {
+            snButton.addEventListener("click", () => {
+                const newValue = snParam.value === 0 ? 1 : 0;
+                snParam.value = newValue;
+                console.log(`sn state set to: ${newValue}`);
+            });
+        }
+
+        // ------ clp-Button Steuerung ------
+        const clpButton = document.getElementById("clp");
+        const clpParam = device.parametersById.get("clp");
+
+        if (clpButton && clpParam) {
+            clpButton.addEventListener("click", () => {
+                const newValue = clpParam.value === 0 ? 1 : 0;
+                clpParam.value = newValue;
+                console.log(`clp state set to: ${newValue}`);
+            });
+        }
+
+        // ------ hi-Button Steuerung ------
+        const hiButton = document.getElementById("hi");
+        const hiParam = device.parametersById.get("hi");
+
+        if (hiButton && hiParam) {
+            hiButton.addEventListener("click", () => {
+                const newValue = hiParam.value === 0 ? 1 : 0;
+                hiParam.value = newValue;
+                console.log(`hi state set to: ${newValue}`);
+            });
+        }
+
+
         // ------ kick PNG-Strip Steuerung ------
         const kickDiv = document.getElementById("kick");
         const kickParam = device.parametersById.get("kick");
