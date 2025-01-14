@@ -182,6 +182,33 @@ async function setup() {
             });
         }
 
+                // ------ Light-Visualisierung ------
+        const maxLights = 16; // Anzahl der Lichter (1-16)
+        const lightClassPrefix = "lighty"; // Klassenname-Präfix
+
+        const lightParam = device.parametersById.get("light");
+
+        if (lightParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === lightParam.id) {
+                    const lightValue = Math.round(param.value); // Wert zwischen 1 und 16
+                    updateLightVisual(lightValue);
+                    console.log(`Light visual set to: ${lightValue}`);
+                }
+            });
+        }
+
+        function updateLightVisual(activeLight) {
+            for (let i = 1; i <= maxLights; i++) {
+                const lightElement = document.querySelector(`.${lightClassPrefix}${i}`);
+                if (lightElement) {
+                    // Sichtbarkeit steuern: nur das aktive Licht sichtbar machen
+                    lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
+                }
+            }
+        }
+
+
                 // ------ b1-b16 Button Steuerung ------
         for (let i = 1; i <= 16; i++) {
             const buttonId = `b${i}`;
