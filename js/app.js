@@ -1,85 +1,159 @@
-    // ------ RNBO integration ------
-    async function setup() {
-        console.log("Setup gestartet...");
+// ------ RNBO integration ------
+async function setup() {
+    console.log("Setup gestartet...");
 
-        const patchExportURL = "https://raquelle-philtreezs-projects.vercel.app/export/patch.export.json"; // Passe die URL deines Patches an
-        const WAContext = window.AudioContext || window.webkitAudioContext;
-        const context = new WAContext();
-        const outputNode = context.createGain();
-        outputNode.connect(context.destination);
+    const patchExportURL = "https://raquelle-philtreezs-projects.vercel.app/export/patch.export.json"; // Passe die URL deines Patches an
+    const WAContext = window.AudioContext || window.webkitAudioContext;
+    const context = new WAContext();
+    const outputNode = context.createGain();
+    outputNode.connect(context.destination);
 
-        let patcher, device;
+    let patcher, device;
 
-        try {
-            // Lade den RNBO-Patch
-            const response = await fetch(patchExportURL);
-            patcher = await response.json();
+    try {
+        // Lade den RNBO-Patch
+        const response = await fetch(patchExportURL);
+        patcher = await response.json();
 
-            if (!window.RNBO) {
-                console.log("Lade RNBO-Bibliothek...");
-                await loadRNBOScript(patcher.desc.meta.rnboversion);
-            }
-
-            device = await RNBO.createDevice({ context, patcher });
-            console.log("RNBO-Device erfolgreich erstellt.");
-
-            device.node.connect(outputNode);
-            console.log("RNBO-Device an Audio-Ausgang verbunden.");
-
-            setupButtons(device, 'b'); // Buttons b1-b16 initialisieren
-            setupButtons(device, 'e'); // Buttons e1-e16 initialisieren
-            setupButtons(device, 'q'); // Buttons q1-q16 initialisieren
-            setupButtons(device, 'r'); // Buttons r1-r16 initialisieren
-
-            setInitialParameterValues(device); // Initiale Werte setzen
-            setupOscilloscope(context, device, outputNode);
-            setupLightVisualization(device);
-
-        } catch (error) {
-            console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
-            return;
+        if (!window.RNBO) {
+            console.log("Lade RNBO-Bibliothek...");
+            await loadRNBOScript(patcher.desc.meta.rnboversion);
         }
 
-        document.body.addEventListener("click", () => {
-            if (context.state === "suspended") {
-                context.resume().then(() => console.log("AudioContext aktiviert."));
+        device = await RNBO.createDevice({ context, patcher });
+        console.log("RNBO-Device erfolgreich erstellt.");
+
+        device.node.connect(outputNode);
+        console.log("RNBO-Device an Audio-Ausgang verbunden.");
+
+        setupButtons(device, 'b'); // Buttons b1-b16 initialisieren
+        setupButtons(device, 'e'); // Buttons e1-e16 initialisieren
+        setupButtons(device, 'q'); // Buttons q1-q16 initialisieren
+        setupButtons(device, 'r'); // Buttons r1-r16 initialisieren
+
+        setInitialParameterValues(device); // Initiale Werte setzen
+        setupOscilloscope(context, device, outputNode);
+        setupLightVisualization(device);
+
+    } catch (error) {
+        console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
+        return;
+    }
+
+    document.body.addEventListener("click", () => {
+        if (context.state === "suspended") {
+            context.resume().then(() => console.log("AudioContext aktiviert."));
+        }
+    });
+
+    console.log(`AudioContext state: ${context.state}`);
+}
+
+function setupButtons(device, prefix) {
+    for (let i = 1; i <= 16; i++) {
+        const buttonId = `${prefix}${i}`;
+        const buttonDiv = document.getElementById(buttonId);
+        const buttonParam = device.parametersById.get(buttonId);
+
+        if (buttonDiv && buttonParam) {
+            // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
+            updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
+
+            buttonDiv.addEventListener("click", () => {
+                const newValue = buttonParam.value === 0 ? 1 : 0;
+                buttonParam.value = newValue;
+                updateButtonVisual(buttonDiv, newValue);
+                console.log(`${buttonId} state set to: ${newValue}`);
+            });
+
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === buttonParam.id) {
+                    const newValue = Math.round(param.value);
+                    updateButtonVisual(buttonDiv, newValue);
+                    console.log(`${buttonId} updated to: ${newValue}`);
+                }
+            });
+        }
+    }
+
+    function updateButtonVisual(buttonDiv, value) {
+        buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
+    }
+}
+
+function setupOscilloscope(context, device, outputNode) {
+    const analyserNode = context.createAnalyser();
+    analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
+    const bufferLength = analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    device.node.connect(analyserNode); // Verbinde Analyser mit dem Audio-Ausgang
+    analyserNode.connect(outputNode);
+
+    const oscilloscopeCanvas = document.getElementById('oscilloscope');
+    oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
+    oscilloscopeCanvas.height = 230;
+    const oscilloscopeContext = oscilloscopeCanvas.getContext("2d");
+
+    function drawOscilloscope() {
+        requestAnimationFrame(drawOscilloscope);
+        analyserNode.getByteTimeDomainData(dataArray);
+
+        oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
+        oscilloscopeContext.lineWidth = 4;
+        oscilloscopeContext.strokeStyle = "rgb(0, 255, 130)"; // Farbe der Wellenform
+        oscilloscopeContext.beginPath();
+
+        const sliceWidth = oscilloscopeCanvas.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * oscilloscopeCanvas.height) / 2;
+
+            if (i === 0) {
+                oscilloscopeContext.moveTo(x, y);
+            } else {
+                oscilloscopeContext.lineTo(x, y);
+            }
+
+            x += sliceWidth;
+        }
+
+        oscilloscopeContext.lineTo(oscilloscopeCanvas.width, oscilloscopeCanvas.height / 2);
+        oscilloscopeContext.stroke();
+    }
+
+    drawOscilloscope(); // Zeichnen starten
+}
+
+function setupLightVisualization(device) {
+    const maxLights = 16; // Anzahl der Lichter (1-16)
+    const lightClassPrefix = "lighty"; // Klassenname-Präfix
+
+    const lightParam = device.parametersById.get("light");
+
+    if (lightParam) {
+        device.parameterChangeEvent.subscribe((param) => {
+            if (param.id === lightParam.id) {
+                const lightValue = Math.round(param.value); // Wert zwischen 1 und 16
+                updateLightVisual(lightValue);
+                console.log(`Light visual set to: ${lightValue}`);
             }
         });
-
-        console.log(`AudioContext state: ${context.state}`);
     }
 
-    function setupButtons(device, prefix) {
-        for (let i = 1; i <= 16; i++) {
-            const buttonId = `${prefix}${i}`;
-            const buttonDiv = document.getElementById(buttonId);
-            const buttonParam = device.parametersById.get(buttonId);
-
-            if (buttonDiv && buttonParam) {
-                // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
-                updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
-
-                buttonDiv.addEventListener("click", () => {
-                    const newValue = buttonParam.value === 0 ? 1 : 0;
-                    buttonParam.value = newValue;
-                    updateButtonVisual(buttonDiv, newValue);
-                    console.log(`${buttonId} state set to: ${newValue}`);
-                });
-
-                device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === buttonParam.id) {
-                        const newValue = Math.round(param.value);
-                        updateButtonVisual(buttonDiv, newValue);
-                        console.log(`${buttonId} updated to: ${newValue}`);
-                    }
-                });
+    function updateLightVisual(activeLight) {
+        for (let i = 1; i <= maxLights; i++) {
+            const lightElement = document.querySelector(`.${lightClassPrefix}${i}`);
+            if (lightElement) {
+                // Sichtbarkeit steuern: nur das aktive Licht sichtbar machen
+                lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
             }
         }
-
-        function updateButtonVisual(buttonDiv, value) {
-            buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
-        }
     }
+}
+
 
     function setupOscilloscope(context, device, outputNode) {
         const analyserNode = context.createAnalyser();
@@ -345,66 +419,6 @@
             });
         }
 
-                // ------ Rotary Slider für "sli" ------
-        function setupRotarySlider(device) {
-            const sliderDiv = document.getElementById("rotary-slider");
-            const sliderParam = device.parametersById.get("sli");
-            const totalFrames = 11; // Anzahl der Frames im Bildstrip
-            const frameSize = 200; // Größe eines einzelnen Frames in px
-
-            if (sliderDiv && sliderParam) {
-                // Setze initialen Zustand entsprechend des Parameterwerts
-                updateRotarySliderVisual(sliderDiv, Math.round(sliderParam.value * (totalFrames - 1)));
-
-                // Event Listener für Benutzerinteraktion hinzufügen
-                sliderDiv.addEventListener("mousedown", (event) => {
-                    document.addEventListener("mousemove", onMouseMove);
-                    document.addEventListener("mouseup", onMouseUp);
-
-                    handleSliderRotation(event, sliderDiv, sliderParam);
-                });
-
-                // RNBO-Parameteränderungen anzeigen
-                device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === sliderParam.id) {
-                        const frameIndex = Math.round(param.value * (totalFrames - 1));
-                        updateRotarySliderVisual(sliderDiv, frameIndex);
-                        console.log(`Rotary slider frame set to: ${frameIndex}`);
-                    }
-                });
-
-                function onMouseMove(event) {
-                    handleSliderRotation(event, sliderDiv, sliderParam);
-                }
-
-                function onMouseUp() {
-                    document.removeEventListener("mousemove", onMouseMove);
-                    document.removeEventListener("mouseup", onMouseUp);
-                }
-            }
-
-            function handleSliderRotation(event, sliderDiv, sliderParam) {
-                const rect = sliderDiv.getBoundingClientRect();
-                const centerX = rect.left + rect.width / 2;
-                const centerY = rect.top + rect.height / 2;
-                const angle = Math.atan2(event.clientY - centerY, event.clientX - centerX);
-                let normalizedValue = (angle + Math.PI) / (2 * Math.PI); // Normalisiert auf [0, 1]
-                normalizedValue = Math.max(0, Math.min(1, normalizedValue)); // Begrenzen auf [0, 1]
-
-                sliderParam.value = normalizedValue;
-                const frameIndex = Math.round(normalizedValue * (totalFrames - 1));
-                updateRotarySliderVisual(sliderDiv, frameIndex);
-                console.log(`Rotary slider set to value: ${normalizedValue}, frame: ${frameIndex}`);
-            }
-
-            function updateRotarySliderVisual(sliderDiv, frameIndex) {
-                const yOffset = frameIndex * frameSize; // Y-Versatz für den aktuellen Frame
-                sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
-                console.log(`Rotary slider visual updated to frame ${frameIndex}`);
-            }
-        }
-
-        
 
         // ------ Slider Steuerung mit Drag-Funktion (c1 bis c5) ------
         for (let i = 1; i <= 5; i++) {
