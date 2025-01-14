@@ -81,6 +81,57 @@ function setupButtons(device, prefix) {
     }
 }
 
+function setupRotarySlider(device) {
+    const sliderDiv = document.getElementById('sli-slider');
+    const sliderParam = device.parametersById.get('sli');
+
+    if (sliderDiv && sliderParam) {
+        // Setze initialen Zustand des Sliders entsprechend des Parameterwertes
+        updateSliderVisual(sliderDiv, Math.round(sliderParam.value * 10));
+
+        sliderDiv.addEventListener("mousedown", startDragging);
+        document.addEventListener("mousemove", dragSlider);
+        document.addEventListener("mouseup", stopDragging);
+
+        let isDragging = false;
+
+        function startDragging(event) {
+            isDragging = true;
+            dragSlider(event);
+        }
+
+        function dragSlider(event) {
+            if (!isDragging) return;
+
+            const rect = sliderDiv.getBoundingClientRect();
+            const y = event.clientY - rect.top;
+            const normalizedValue = Math.max(0, Math.min(1, 1 - y / rect.height));
+            sliderParam.value = normalizedValue;
+            updateSliderVisual(sliderDiv, Math.round(normalizedValue * 10));
+            console.log(`Slider sli set to value: ${normalizedValue.toFixed(2)}`);
+        }
+
+        function stopDragging() {
+            isDragging = false;
+        }
+
+        device.parameterChangeEvent.subscribe((param) => {
+            if (param.id === sliderParam.id) {
+                const frameIndex = Math.round(param.value * 10);
+                updateSliderVisual(sliderDiv, frameIndex);
+                console.log(`Slider sli updated to frame: ${frameIndex}`);
+            }
+        });
+    }
+
+    function updateSliderVisual(sliderDiv, frameIndex) {
+        const frameHeight = 200; // Höhe eines einzelnen Frames in px
+        const yOffset = frameIndex * frameHeight; // Y-Versatz für den aktuellen Frame
+        sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
+    }
+}
+
+
 function setupOscilloscope(context, device, outputNode) {
     const analyserNode = context.createAnalyser();
     analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
