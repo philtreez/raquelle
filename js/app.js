@@ -278,6 +278,18 @@ async function setup() {
             });
         }
 
+        // ------ drumt-Button Steuerung ------
+        const drumtButton = document.getElementById("drumt");
+        const drumtParam = device.parametersById.get("drumt");
+
+        if (drumtButton && drumtParam) {
+            drumtButton.addEventListener("click", () => {
+                const newValue = drumtParam.value === 0 ? 1 : 0;
+                drumtParam.value = newValue;
+                console.log(`drumt state set to: ${newValue}`);
+            });
+        }
+
 
         // ------ kick PNG-Strip Steuerung ------
         const kickDiv = document.getElementById("kick");
