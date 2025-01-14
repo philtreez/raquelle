@@ -344,6 +344,66 @@
                 }
             });
         }
+
+                // ------ Rotary Slider für "sli" ------
+        function setupRotarySlider(device) {
+            const sliderDiv = document.getElementById("rotary-slider");
+            const sliderParam = device.parametersById.get("sli");
+            const totalFrames = 11; // Anzahl der Frames im Bildstrip
+            const frameSize = 200; // Größe eines einzelnen Frames in px
+
+            if (sliderDiv && sliderParam) {
+                // Setze initialen Zustand entsprechend des Parameterwerts
+                updateRotarySliderVisual(sliderDiv, Math.round(sliderParam.value * (totalFrames - 1)));
+
+                // Event Listener für Benutzerinteraktion hinzufügen
+                sliderDiv.addEventListener("mousedown", (event) => {
+                    document.addEventListener("mousemove", onMouseMove);
+                    document.addEventListener("mouseup", onMouseUp);
+
+                    handleSliderRotation(event, sliderDiv, sliderParam);
+                });
+
+                // RNBO-Parameteränderungen anzeigen
+                device.parameterChangeEvent.subscribe((param) => {
+                    if (param.id === sliderParam.id) {
+                        const frameIndex = Math.round(param.value * (totalFrames - 1));
+                        updateRotarySliderVisual(sliderDiv, frameIndex);
+                        console.log(`Rotary slider frame set to: ${frameIndex}`);
+                    }
+                });
+
+                function onMouseMove(event) {
+                    handleSliderRotation(event, sliderDiv, sliderParam);
+                }
+
+                function onMouseUp() {
+                    document.removeEventListener("mousemove", onMouseMove);
+                    document.removeEventListener("mouseup", onMouseUp);
+                }
+            }
+
+            function handleSliderRotation(event, sliderDiv, sliderParam) {
+                const rect = sliderDiv.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const angle = Math.atan2(event.clientY - centerY, event.clientX - centerX);
+                let normalizedValue = (angle + Math.PI) / (2 * Math.PI); // Normalisiert auf [0, 1]
+                normalizedValue = Math.max(0, Math.min(1, normalizedValue)); // Begrenzen auf [0, 1]
+
+                sliderParam.value = normalizedValue;
+                const frameIndex = Math.round(normalizedValue * (totalFrames - 1));
+                updateRotarySliderVisual(sliderDiv, frameIndex);
+                console.log(`Rotary slider set to value: ${normalizedValue}, frame: ${frameIndex}`);
+            }
+
+            function updateRotarySliderVisual(sliderDiv, frameIndex) {
+                const yOffset = frameIndex * frameSize; // Y-Versatz für den aktuellen Frame
+                sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
+                console.log(`Rotary slider visual updated to frame ${frameIndex}`);
+            }
+        }
+
         
 
         // ------ Slider Steuerung mit Drag-Funktion (c1 bis c5) ------
@@ -389,27 +449,27 @@
             }
         }
 
-        function handleStepSelection(event, sliderDiv, steps, sliderParam) {
-            const rect = sliderDiv.getBoundingClientRect();
-            const y = event.clientY - rect.top;
-            const stepHeight = rect.height / steps.length;
-            const selectedIndex = Math.floor(y / stepHeight);
+            function handleStepSelection(event, sliderDiv, steps, sliderParam) {
+                const rect = sliderDiv.getBoundingClientRect();
+                const y = event.clientY - rect.top;
+                const stepHeight = rect.height / steps.length;
+                const selectedIndex = Math.floor(y / stepHeight);
 
-            if (selectedIndex >= 0 && selectedIndex < steps.length) {
-                sliderParam.value = selectedIndex;
-                updateSliderVisual(sliderDiv, selectedIndex);
-                console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex}`);
+                if (selectedIndex >= 0 && selectedIndex < steps.length) {
+                    sliderParam.value = selectedIndex;
+                    updateSliderVisual(sliderDiv, selectedIndex);
+                    console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex}`);
+                }
             }
-        }
 
-        function updateSliderVisual(sliderDiv, frameIndex) {
-            const steps = sliderDiv.querySelectorAll(".step");
-            steps.forEach((step, index) => {
-                step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
-            });
-        }
+            function updateSliderVisual(sliderDiv, frameIndex) {
+                const steps = sliderDiv.querySelectorAll(".step");
+                steps.forEach((step, index) => {
+                    step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
+                });
+            }
 
-        setInitialParameterValues(device); // Initiale Werte setzen
+            setInitialParameterValues(device); // Initiale Werte setzen
     
 
         document.body.addEventListener("click", () => {
@@ -420,22 +480,22 @@
     }
 
 
-    function setInitialParameterValues(device) {
-        const initialValues = { c1: 4, c2: 5, c3: 5, c4: 5, c5: 6, slicont: 0 };
-        Object.keys(initialValues).forEach((paramId) => {
-            const param = device.parametersById.get(paramId);
-            if (param) param.value = initialValues[paramId];
-        });
-    }
+function setInitialParameterValues(device) {
+    const initialValues = { c1: 4, c2: 5, c3: 5, c4: 5, c5: 6, slicont: 0 };
+    Object.keys(initialValues).forEach((paramId) => {
+        const param = device.parametersById.get(paramId);
+        if (param) param.value = initialValues[paramId];
+    });
+}
 
-    function loadRNBOScript(version) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = `https://js.cdn.cycling74.com/rnbo/${encodeURIComponent(version)}/rnbo.min.js`;
-            script.onload = resolve;
-            script.onerror = () => reject(new Error(`Failed to load RNBO library version ${version}`));
-            document.body.appendChild(script);
-        });
-    }
+function loadRNBOScript(version) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement("script");
+        script.src = `https://js.cdn.cycling74.com/rnbo/${encodeURIComponent(version)}/rnbo.min.js`;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error(`Failed to load RNBO library version ${version}`));
+        document.body.appendChild(script);
+    });
+}
 
 setup();
