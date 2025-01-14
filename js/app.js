@@ -26,52 +26,58 @@ async function setup() {
         device.node.connect(outputNode);
         console.log("RNBO-Device an Audio-Ausgang verbunden.");
 
-        // ------ Einzelner Slider für w1 ------
-        const sliderDiv = document.getElementById('w1-slider');
-        const sliderParam = device.parametersById.get('w1');
-
-        if (sliderDiv && sliderParam) {
-            // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
-            updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
-
-            // Event Listener für Benutzerinteraktion hinzufügen
-            sliderDiv.addEventListener("mousedown", (event) => {
-                handleSliderDrag(event, sliderDiv, sliderParam);
-            });
-
-            sliderDiv.addEventListener("mousemove", (event) => {
-                if (event.buttons === 1) {
-                    handleSliderDrag(event, sliderDiv, sliderParam);
+        function setupSlider(device) {
+            const sliderDiv = document.getElementById("w1-slider");
+            const sliderParam = device.parametersById.get("w1");
+        
+            if (sliderDiv && sliderParam) {
+                // Setze initialen Zustand des Sliders entsprechend der Parameterwerte
+                updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
+        
+                let isDragging = false;
+                let startY = 0;
+                let currentY = 0;
+        
+                // Maus-Event-Handler für Dragging
+                sliderDiv.addEventListener("mousedown", (event) => {
+                    isDragging = true;
+                    startY = event.clientY - currentY;
+                    document.addEventListener("mousemove", onMouseMove);
+                    document.addEventListener("mouseup", onMouseUp);
+                });
+        
+                function onMouseMove(event) {
+                    if (!isDragging) return;
+                    const rect = sliderDiv.getBoundingClientRect();
+                    currentY = Math.min(Math.max(event.clientY - startY, 0), rect.height - 156); // Begrenze den Bereich
+                    sliderDiv.style.transform = `translateY(${currentY}px)`;
+        
+                    // Slider-Wert berechnen und an RNBO senden
+                    const sliderValue = Math.round((currentY / (rect.height - 156)) * 10);
+                    sliderParam.value = sliderValue;
+                    console.log(`Slider w1 set to value: ${sliderValue}`);
                 }
-            });
-
-            // RNBO-Parameteränderungen anzeigen
-            device.parameterChangeEvent.subscribe((param) => {
-                if (param.id === sliderParam.id) {
-                    const frameIndex = Math.round(param.value);
-                    updateSliderVisual(sliderDiv, frameIndex);
-                    console.log(`Slider w1 frame set to: ${frameIndex}`);
+        
+                function onMouseUp() {
+                    isDragging = false;
+                    document.removeEventListener("mousemove", onMouseMove);
+                    document.removeEventListener("mouseup", onMouseUp);
                 }
-            });
-        }
-
-        function handleSliderDrag(event, sliderDiv, sliderParam) {
-            const rect = sliderDiv.getBoundingClientRect();
-            const y = event.clientY - rect.top;
-            const stepHeight = rect.height / 11; // 11 Schritte (0-10)
-            let selectedIndex = Math.floor(y / stepHeight);
-            selectedIndex = Math.max(0, Math.min(10, selectedIndex)); // Begrenzen auf 0-10
-
-            sliderParam.value = selectedIndex;
-            updateSliderVisual(sliderDiv, selectedIndex);
-            console.log(`Slider w1 set to value: ${selectedIndex}`);
-        }
-
-        function updateSliderVisual(sliderDiv, frameIndex) {
-            const frameHeight = 100; // Höhe eines einzelnen Frames in px
-            const yOffset = frameIndex * frameHeight; // Y-Versatz für den aktuellen Frame
-            sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
-            console.log(`Slider w1 frame set to: ${frameIndex}, background position: 0 -${yOffset}px`);
+        
+                device.parameterChangeEvent.subscribe((param) => {
+                    if (param.id === sliderParam.id) {
+                        const frameIndex = Math.round(param.value);
+                        updateSliderVisual(sliderDiv, frameIndex);
+                        console.log(`Slider w1 frame set to: ${frameIndex}`);
+                    }
+                });
+            }
+        
+            function updateSliderVisual(sliderDiv, frameIndex) {
+                const frameHeight = 100; // Höhe eines einzelnen Frames in px
+                const yOffset = frameIndex * frameHeight; // Y-Versatz für den aktuellen Frame
+                sliderDiv.style.backgroundPosition = `0 -${yOffset}px`;
+            }
         }                     
 
         // ------ Audio- und Analyser-Node verbinden ------
