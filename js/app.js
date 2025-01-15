@@ -137,7 +137,7 @@ async function setupSlider(device) {
 }
 
 // ------ Slider2 Steuerung ------
-async function setupSlider(device) {
+async function setupSlider2(device) {
     const slider2Param = device.parametersById.get('sli2'); // RNBO-Parameter 'sli' (0-1)
     const slider2Svg = document.getElementById('sli-slider2'); // SVG mit ID 'sli-slider'
     const slider2Knob = slider2Svg.querySelector('#Ebene_2 rect'); // Rechteck (Regler)
