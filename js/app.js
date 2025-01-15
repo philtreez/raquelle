@@ -275,6 +275,23 @@ function setupLightVisualization(device) {
             });
         }
 
+            // ------ Intro2 PNG-Strip Steuerung ------
+            const intro2Div = document.getElementById("intro2");
+            const intro2Param = device.parametersById.get("intro2");
+            const intro2Container = document.getElementById("intro-container2");
+    
+            if (intro2Div && intro2Param) {
+                device.parameterChangeEvent.subscribe((param) => {
+                    if (param.id === intro2Param.id) {
+                        const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                        const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
+                        intro2Div.style.backgroundPosition = `0 -${yOffset}`;
+                        intro2Container.style.display = (frameIndex === 0) ? "none" : "block";
+                        console.log(`Intro2 frame set to: ${frameIndex}`);
+                    }
+                });
+            }
+
                 // ------ Light-Visualisierung ------
         const maxLights = 16; // Anzahl der Lichter (1-16)
         const lightClassPrefix = "lighty"; // Klassenname-Präfix
