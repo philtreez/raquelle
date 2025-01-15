@@ -136,6 +136,61 @@ async function setupSlider(device) {
     });
 }
 
+// ------ Slider2 Steuerung ------
+async function setupSlider(device) {
+    const slider2Param = device.parametersById.get('sli2'); // RNBO-Parameter 'sli' (0-1)
+    const slider2Svg = document.getElementById('sli-slider2'); // SVG mit ID 'sli-slider'
+    const slider2Knob = slider2Svg.querySelector('#Ebene_2 rect'); // Rechteck (Regler)
+
+    const slider2Height = 120; // Gesamthöhe der Sliderlinie
+    const knobHeight = 18.84; // Höhe des Rechtecks (Regler)
+
+    // Initialen Zustand setzen
+    updateSliderVisual(slider2Param.value);
+
+    // Event-Listener für Dragging hinzufügen
+    let isDragging = false;
+    slider2Svg.addEventListener('mousedown', (event) => {
+        isDragging = true;
+        handleSliderMove(event);
+    });
+
+    window.addEventListener('mousemove', (event) => {
+        if (isDragging) {
+            handleSliderMove(event);
+        }
+    });
+
+    window.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+
+    function handleSliderMove(event) {
+        const rect = slider2Svg.getBoundingClientRect();
+        const y = event.clientY - rect.top;
+        let value = 1 - y / slider2Height; // Umrechnen auf Wertebereich 0-1
+        value = Math.max(0, Math.min(1, value)); // Begrenzen auf 0-1
+
+        slider2Param.value = value; // RNBO-Parameter aktualisieren
+        updateSliderVisual(value);
+        console.log(`Slider2 set to value: ${value}`);
+    }
+
+    // Funktion zur Aktualisierung der Slider-Position
+    function updateSliderVisual(value) {
+        const knobY = (1 - value) * (slider2Height - knobHeight); // Y-Position des Reglers
+        slider2Knob.setAttribute('y', knobY);
+    }
+
+    // Auf RNBO-Parameteränderungen reagieren
+    device.parameterChangeEvent.subscribe((param) => {
+        if (param.id === slider2Param.id) {
+            updateSliderVisual(param.value);
+            console.log(`Slider2 updated to: ${param.value}`);
+        }
+    });
+}
+
 
 function setupOscilloscope(context, device, outputNode) {
     const analyserNode = context.createAnalyser();
