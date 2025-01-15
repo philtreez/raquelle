@@ -82,114 +82,66 @@ function setupButtons(device, prefix) {
 }
 
 // ------ Slider Steuerung ------
-async function setupSlider(device) {
-    const sliderParam = device.parametersById.get('sli'); // RNBO-Parameter 'sli' (0-1)
-    const sliderSvg = document.getElementById('sli-slider'); // SVG mit ID 'sli-slider'
-    const sliderKnob = sliderSvg.querySelector('#Ebene_2 rect'); // Rechteck (Regler)
-
+async function setupSliders(device) {
+    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4', 'sli5']; // RNBO-Parameter IDs
     const sliderHeight = 120; // Gesamthöhe der Sliderlinie
     const knobHeight = 18.84; // Höhe des Rechtecks (Regler)
 
-    // Initialen Zustand setzen
-    updateSliderVisual(sliderParam.value);
+    sliderIds.forEach((sliderId) => {
+        const sliderParam = device.parametersById.get(sliderId);
+        const sliderSvg = document.getElementById(`${sliderId}-slider`); // SVG mit ID 'sli-slider', 'sli2-slider', ...
+        const sliderKnob = sliderSvg.querySelector('#Ebene_2 rect'); // Rechteck (Regler)
 
-    // Event-Listener für Dragging hinzufügen
-    let isDragging = false;
-    sliderSvg.addEventListener('mousedown', (event) => {
-        isDragging = true;
-        handleSliderMove(event);
-    });
+        if (sliderParam && sliderSvg && sliderKnob) {
+            // Initialen Zustand setzen
+            updateSliderVisual(sliderKnob, sliderParam.value);
 
-    window.addEventListener('mousemove', (event) => {
-        if (isDragging) {
-            handleSliderMove(event);
-        }
-    });
+            // Event-Listener für Dragging hinzufügen
+            let isDragging = false;
 
-    window.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
+            sliderSvg.addEventListener('mousedown', (event) => {
+                isDragging = true;
+                handleSliderMove(event);
+            });
 
-    function handleSliderMove(event) {
-        const rect = sliderSvg.getBoundingClientRect();
-        const y = event.clientY - rect.top;
-        let value = 1 - y / sliderHeight; // Umrechnen auf Wertebereich 0-1
-        value = Math.max(0, Math.min(1, value)); // Begrenzen auf 0-1
+            window.addEventListener('mousemove', (event) => {
+                if (isDragging) {
+                    handleSliderMove(event);
+                }
+            });
 
-        sliderParam.value = value; // RNBO-Parameter aktualisieren
-        updateSliderVisual(value);
-        console.log(`Slider set to value: ${value}`);
-    }
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
 
-    // Funktion zur Aktualisierung der Slider-Position
-    function updateSliderVisual(value) {
-        const knobY = (1 - value) * (sliderHeight - knobHeight); // Y-Position des Reglers
-        sliderKnob.setAttribute('y', knobY);
-    }
+            function handleSliderMove(event) {
+                const rect = sliderSvg.getBoundingClientRect();
+                const y = event.clientY - rect.top;
+                let value = 1 - y / sliderHeight; // Umrechnen auf Wertebereich 0-1
+                value = Math.max(0, Math.min(1, value)); // Begrenzen auf 0-1
 
-    // Auf RNBO-Parameteränderungen reagieren
-    device.parameterChangeEvent.subscribe((param) => {
-        if (param.id === sliderParam.id) {
-            updateSliderVisual(param.value);
-            console.log(`Slider updated to: ${param.value}`);
-        }
-    });
-}
+                sliderParam.value = value; // RNBO-Parameter aktualisieren
+                updateSliderVisual(sliderKnob, value);
+                console.log(`${sliderId} set to value: ${value}`);
+            }
 
-// ------ Slider2 Steuerung ------
-async function setupSlider2(device) {
-    const slider2Param = device.parametersById.get('sli2'); // RNBO-Parameter 'sli' (0-1)
-    const slider2Svg = document.getElementById('sli-slider2'); // SVG mit ID 'sli-slider'
-    const slider2Knob = slider2Svg.querySelector('#Ebene_2 rect'); // Rechteck (Regler)
+            // Funktion zur Aktualisierung der Slider-Position
+            function updateSliderVisual(sliderKnob, value) {
+                const knobY = (1 - value) * (sliderHeight - knobHeight); // Y-Position des Reglers
+                sliderKnob.setAttribute('y', knobY);
+            }
 
-    const slider2Height = 120; // Gesamthöhe der Sliderlinie
-    const knobHeight = 18.84; // Höhe des Rechtecks (Regler)
-
-    // Initialen Zustand setzen
-    updateSlider2Visual(slider2Param.value);
-
-    // Event-Listener für Dragging hinzufügen
-    let isDragging = false;
-    slider2Svg.addEventListener('mousedown', (event) => {
-        isDragging = true;
-        handleSlider2Move(event);
-    });
-
-    window.addEventListener('mousemove', (event) => {
-        if (isDragging) {
-            handleSlider2Move(event);
-        }
-    });
-
-    window.addEventListener('mouseup', () => {
-        isDragging = false;
-    });
-
-    function handleSlider2Move(event) {
-        const rect = slider2Svg.getBoundingClientRect();
-        const y = event.clientY - rect.top;
-        let value = 1 - y / slider2Height; // Umrechnen auf Wertebereich 0-1
-        value = Math.max(0, Math.min(1, value)); // Begrenzen auf 0-1
-
-        slider2Param.value = value; // RNBO-Parameter aktualisieren
-        updateSlider2Visual(value);
-        console.log(`Slider2 set to value: ${value}`);
-    }
-
-    // Funktion zur Aktualisierung der Slider-Position
-    function updateSlider2Visual(value) {
-        const knobY = (1 - value) * (slider2Height - knobHeight); // Y-Position des Reglers
-        slider2Knob.setAttribute('y', knobY);
-    }
-
-    // Auf RNBO-Parameteränderungen reagieren
-    device.parameterChangeEvent.subscribe((param) => {
-        if (param.id === slider2Param.id) {
-            updateSlider2Visual(param.value);
-            console.log(`Slider2 updated to: ${param.value}`);
+            // Auf RNBO-Parameteränderungen reagieren
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === sliderParam.id) {
+                    updateSliderVisual(sliderKnob, param.value);
+                    console.log(`${sliderId} updated to: ${param.value}`);
+                }
+            });
         }
     });
 }
+
 
 
 function setupOscilloscope(context, device, outputNode) {
@@ -237,7 +189,7 @@ function setupOscilloscope(context, device, outputNode) {
 
     drawOscilloscope(); // Zeichnen starten
 
-    setupSlider(device); // Slider einrichten
+    setupSliders(device); // Slider einrichten
 
 
 function setupLightVisualization(device) {
