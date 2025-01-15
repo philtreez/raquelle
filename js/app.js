@@ -278,7 +278,7 @@ function setupLightVisualization(device) {
             // ------ Intro2 PNG-Strip Steuerung ------
             const intro2Div = document.getElementById("intro2");
             const intro2Param = device.parametersById.get("intro2");
-            const intro2Container = document.getElementById("intro-container2");
+            const intro2Container = document.getElementById("intro2-container");
     
             if (intro2Div && intro2Param) {
                 device.parameterChangeEvent.subscribe((param) => {
