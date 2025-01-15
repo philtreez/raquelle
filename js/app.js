@@ -146,18 +146,18 @@ async function setupSlider2(device) {
     const knobHeight = 18.84; // Höhe des Rechtecks (Regler)
 
     // Initialen Zustand setzen
-    updateSliderVisual(slider2Param.value);
+    updateSlider2Visual(slider2Param.value);
 
     // Event-Listener für Dragging hinzufügen
     let isDragging = false;
     slider2Svg.addEventListener('mousedown', (event) => {
         isDragging = true;
-        handleSliderMove(event);
+        handleSlider2Move(event);
     });
 
     window.addEventListener('mousemove', (event) => {
         if (isDragging) {
-            handleSliderMove(event);
+            handleSlider2Move(event);
         }
     });
 
@@ -165,19 +165,19 @@ async function setupSlider2(device) {
         isDragging = false;
     });
 
-    function handleSliderMove(event) {
+    function handleSlider2Move(event) {
         const rect = slider2Svg.getBoundingClientRect();
         const y = event.clientY - rect.top;
         let value = 1 - y / slider2Height; // Umrechnen auf Wertebereich 0-1
         value = Math.max(0, Math.min(1, value)); // Begrenzen auf 0-1
 
         slider2Param.value = value; // RNBO-Parameter aktualisieren
-        updateSliderVisual(value);
+        updateSlider2Visual(value);
         console.log(`Slider2 set to value: ${value}`);
     }
 
     // Funktion zur Aktualisierung der Slider-Position
-    function updateSliderVisual(value) {
+    function updateSlider2Visual(value) {
         const knobY = (1 - value) * (slider2Height - knobHeight); // Y-Position des Reglers
         slider2Knob.setAttribute('y', knobY);
     }
@@ -185,7 +185,7 @@ async function setupSlider2(device) {
     // Auf RNBO-Parameteränderungen reagieren
     device.parameterChangeEvent.subscribe((param) => {
         if (param.id === slider2Param.id) {
-            updateSliderVisual(param.value);
+            updateSlider2Visual(param.value);
             console.log(`Slider2 updated to: ${param.value}`);
         }
     });
