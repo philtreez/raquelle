@@ -143,30 +143,33 @@ async function setupSliders(device) {
 }
 
 function setupLightVisualization(device, groupPrefix) {
-    const maxLights = 16;
-    const lightClassPrefix = `${groupPrefix}-lighty`;
+    const maxLights = 16; // Anzahl der Lichter (1-16)
+    const lightClassPrefix = `${groupPrefix}-lighty`; // Klassenname-Präfix für Gruppe
 
+    // RNBO-Parameter für diese spezifische Gruppe
     const lightParam = device.parametersById.get(groupPrefix);
-    
+
     if (lightParam) {
         device.parameterChangeEvent.subscribe((param) => {
             if (param.id === lightParam.id) {
-                const lightValue = Math.round(param.value);
-                updateLightVisual(lightClassPrefix, lightValue);
+                const lightValue = Math.round(param.value); // Wert zwischen 1 und 16
+                updateLightVisual(groupPrefix, lightValue);
                 console.log(`Light visual (${groupPrefix}) set to: ${lightValue}`);
             }
         });
     }
 
-    function updateLightVisual(lightClassPrefix, activeLight) {
+    function updateLightVisual(groupPrefix, activeLight) {
         for (let i = 1; i <= maxLights; i++) {
-            const lightElements = document.querySelectorAll(`.${lightClassPrefix}${i}`);
+            const lightElements = document.querySelectorAll(`.${groupPrefix}-lighty${i}`);
             lightElements.forEach((lightElement) => {
+                // Nur das aktive Licht sichtbar machen
                 lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
             });
         }
     }
 }
+
 
 
 
