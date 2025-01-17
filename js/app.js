@@ -294,6 +294,32 @@ function setupOscilloscope(context, device, outputNode) {
             }
         }
 
+        // ------ lo-Visualisierung ------
+        const maxLo = 16; // Anzahl der Lichter (1-16)
+        const loClassPrefix = "lo"; // Klassenname-Präfix
+
+        const loParam = device.parametersById.get("lo");
+
+        if (loParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === loParam.id) {
+                    const loValue = Math.round(param.value); // Wert zwischen 1 und 16
+                    updateLoVisual(loValue);
+                    console.log(`Lo visual set to: ${loValue}`);
+                }
+            });
+        }
+
+        function updateLoVisual(activeLo) {
+            for (let i = 1; i <= maxLo; i++) {
+                const loElement = document.querySelector(`.${loClassPrefix}${i}`);
+                if (loElement) {
+                    // Sichtbarkeit steuern: nur das aktive Licht sichtbar machen
+                    loElement.style.visibility = i === activeLo ? "visible" : "hidden";
+                }
+            }
+        }
+
         // ------ Li-Visualisierung ------
         const maxLi = 16; // Anzahl der Lichter (1-16)
         const liClassPrefix = "li"; // Klassenname-Präfix
