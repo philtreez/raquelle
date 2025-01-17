@@ -191,8 +191,6 @@ function setupOscilloscope(context, device, outputNode) {
 
     drawOscilloscope(); // Zeichnen starten
 
-    setupSliders(device); // Slider einrichten
-
 
     function setupLightVisualization(device, groupPrefix) {
         const maxLights = 16; // Anzahl der Lichter (1-16)
@@ -222,6 +220,8 @@ function setupOscilloscope(context, device, outputNode) {
         }
     }
     
+    setupSliders(device); // Slider einrichten
+
     
 
         // Parameter zur Steuerung der Sichtbarkeit abonnieren
