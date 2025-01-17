@@ -85,7 +85,7 @@ function updateButtonVisual(buttonDiv, value) {
 
 // ------ Slider Steuerung ------
 async function setupSliders(device) {
-    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4'];
+    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4', 'sli5', 'sli10', 'sli11', 'sli12', 'sli13', 'sli14', 'sli15', 'sli16', 'sli17', 'sli18', 'sli19', 'sli20', 'sli21', 'sli22', 'sli23', 'sli24', 'sli25'];
     const sliderHeight = 120;
     const knobHeight = 18.84;
 
