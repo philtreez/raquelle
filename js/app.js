@@ -31,9 +31,11 @@ async function setup() {
         setupButtons(device, 'q'); // Buttons q1-q16 initialisieren
         setupButtons(device, 'r'); // Buttons r1-r16 initialisieren
 
+        setupLightVisualization(device, "seq");
+        setupLightVisualization(device, "drums");
+
         setInitialParameterValues(device); // Initiale Werte setzen
         setupOscilloscope(context, device, outputNode);
-        setupLightVisualization(device);
 
     } catch (error) {
         console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
@@ -192,32 +194,34 @@ function setupOscilloscope(context, device, outputNode) {
     setupSliders(device); // Slider einrichten
 
 
-function setupLightVisualization(device) {
-    const maxLights = 16; // Anzahl der Lichter (1-16)
-    const lightClassPrefix = "lighty"; // Klassenname-Präfix
-
-    const lightParam = device.parametersById.get("light");
-
-    if (lightParam) {
-        device.parameterChangeEvent.subscribe((param) => {
-            if (param.id === lightParam.id) {
-                const lightValue = Math.round(param.value); // Wert zwischen 1 und 16
-                updateLightVisual(lightValue);
-                console.log(`Light visual set to: ${lightValue}`);
-            }
-        });
-    }
-
-    function updateLightVisual(activeLight) {
-        for (let i = 1; i <= maxLights; i++) {
-            const lightElement = document.querySelector(`.${lightClassPrefix}${i}`);
-            if (lightElement) {
-                // Sichtbarkeit steuern: nur das aktive Licht sichtbar machen
-                lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
+    function setupLightVisualization(device, groupPrefix) {
+        const maxLights = 16; // Anzahl der Lichter (1-16)
+        const lightClassPrefix = `${groupPrefix}-lighty`; // Klassenname-Präfix für Gruppe
+    
+        // RNBO-Parameter für diese spezifische Gruppe
+        const lightParam = device.parametersById.get(groupPrefix);
+    
+        if (lightParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === lightParam.id) {
+                    const lightValue = Math.round(param.value); // Wert zwischen 1 und 16
+                    updateLightVisual(lightValue);
+                    console.log(`Light visual (${groupPrefix}) set to: ${lightValue}`);
+                }
+            });
+        }
+    
+        function updateLightVisual(activeLight) {
+            for (let i = 1; i <= maxLights; i++) {
+                const lightElements = document.querySelectorAll(`.${lightClassPrefix}${i}`);
+                lightElements.forEach((lightElement) => {
+                    // Nur das aktive Licht sichtbar machen
+                    lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
+                });
             }
         }
     }
-}
+    
     
 
         // Parameter zur Steuerung der Sichtbarkeit abonnieren
