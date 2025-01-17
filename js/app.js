@@ -2,7 +2,7 @@
 async function setup() {
     console.log("Setup gestartet...");
 
-    const patchExportURL = "https://raquelle-philtreezs-projects.vercel.app/export/patch.export.json"; // Passe die URL deines Patches an
+    const patchExportURL = "https://raquelle-philtreezs-projects.vercel.app/export/patch.export.json"; 
     const WAContext = window.AudioContext || window.webkitAudioContext;
     const context = new WAContext();
     const outputNode = context.createGain();
@@ -26,16 +26,19 @@ async function setup() {
         device.node.connect(outputNode);
         console.log("RNBO-Device an Audio-Ausgang verbunden.");
 
-        setupButtons(device, 'b'); // Buttons b1-b16 initialisieren
-        setupButtons(device, 'e'); // Buttons e1-e16 initialisieren
-        setupButtons(device, 'q'); // Buttons q1-q16 initialisieren
-        setupButtons(device, 'r'); // Buttons r1-r16 initialisieren
+        // Setup-Funktionen aufrufen
+        setupButtons(device, 'b'); 
+        setupButtons(device, 'e'); 
+        setupButtons(device, 'q'); 
+        setupButtons(device, 'r'); 
 
         setupLightVisualization(device, "seq");
         setupLightVisualization(device, "drums");
 
-        setInitialParameterValues(device); // Initiale Werte setzen
+        setupSliders(device); // WICHTIG! Sliders aufrufen
         setupOscilloscope(context, device, outputNode);
+
+        setInitialParameterValues(device); 
 
     } catch (error) {
         console.error("Fehler beim Laden oder Erstellen des RNBO-Devices:", error);
@@ -51,6 +54,7 @@ async function setup() {
     console.log(`AudioContext state: ${context.state}`);
 }
 
+// ------ Button Steuerung ------
 function setupButtons(device, prefix) {
     for (let i = 1; i <= 16; i++) {
         const buttonId = `${prefix}${i}`;
@@ -58,7 +62,6 @@ function setupButtons(device, prefix) {
         const buttonParam = device.parametersById.get(buttonId);
 
         if (buttonDiv && buttonParam) {
-            // Setze initialen Zustand des Buttons entsprechend des Parameterwertes
             updateButtonVisual(buttonDiv, Math.round(buttonParam.value));
 
             buttonDiv.addEventListener("click", () => {
@@ -77,38 +80,35 @@ function setupButtons(device, prefix) {
             });
         }
     }
+}
 
-    function updateButtonVisual(buttonDiv, value) {
-        buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
-    }
+function updateButtonVisual(buttonDiv, value) {
+    buttonDiv.style.backgroundColor = value === 1 ? "rgb(0, 255, 130)" : "transparent";
 }
 
 // ------ Slider Steuerung ------
 async function setupSliders(device) {
-    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4', 'sli5', 'sli10', 'sli11', 'sli12', 'sli13', 'sli14', 'sli15', 'sli16', 'sli17', 'sli18', 'sli19', 'sli20', 'sli21', 'sli22', 'sli23', 'sli24', 'sli25']; // RNBO-Parameter IDs
-    const sliderHeight = 120; // Gesamthöhe der Sliderlinie
-    const knobHeight = 18.84; // Höhe des Rechtecks (Regler)
+    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4'];
+    const sliderHeight = 120;
+    const knobHeight = 18.84;
 
     sliderIds.forEach((sliderId) => {
         const sliderParam = device.parametersById.get(sliderId);
-        const sliderSvg = document.getElementById(`${sliderId}-slider`); // SVG mit ID 'sli-slider', 'sli2-slider', ...
-        const sliderKnob = sliderSvg.querySelector('#Ebene_2 rect'); // Rechteck (Regler)
+        const sliderSvg = document.getElementById(`${sliderId}-slider`);
+        const sliderKnob = sliderSvg ? sliderSvg.querySelector('#Ebene_2 rect') : null;
 
         if (sliderParam && sliderSvg && sliderKnob) {
-            // Initialen Zustand setzen
             updateSliderVisual(sliderKnob, sliderParam.value);
 
-            // Event-Listener für Dragging hinzufügen
             let isDragging = false;
-
             sliderSvg.addEventListener('mousedown', (event) => {
                 isDragging = true;
-                handleSliderMove(event);
+                handleSliderMove(event, sliderKnob, sliderParam);
             });
 
             window.addEventListener('mousemove', (event) => {
                 if (isDragging) {
-                    handleSliderMove(event);
+                    handleSliderMove(event, sliderKnob, sliderParam);
                 }
             });
 
@@ -116,24 +116,6 @@ async function setupSliders(device) {
                 isDragging = false;
             });
 
-            function handleSliderMove(event) {
-                const rect = sliderSvg.getBoundingClientRect();
-                const y = event.clientY - rect.top;
-                let value = 1 - y / sliderHeight; // Umrechnen auf Wertebereich 0-1
-                value = Math.max(0, Math.min(1, value)); // Begrenzen auf 0-1
-
-                sliderParam.value = value; // RNBO-Parameter aktualisieren
-                updateSliderVisual(sliderKnob, value);
-                console.log(`${sliderId} set to value: ${value}`);
-            }
-
-            // Funktion zur Aktualisierung der Slider-Position
-            function updateSliderVisual(sliderKnob, value) {
-                const knobY = (1 - value) * (sliderHeight - knobHeight); // Y-Position des Reglers
-                sliderKnob.setAttribute('y', knobY);
-            }
-
-            // Auf RNBO-Parameteränderungen reagieren
             device.parameterChangeEvent.subscribe((param) => {
                 if (param.id === sliderParam.id) {
                     updateSliderVisual(sliderKnob, param.value);
@@ -142,6 +124,49 @@ async function setupSliders(device) {
             });
         }
     });
+
+    function handleSliderMove(event, sliderKnob, sliderParam) {
+        const rect = sliderKnob.closest('svg').getBoundingClientRect();
+        const y = event.clientY - rect.top;
+        let value = 1 - y / sliderHeight;
+        value = Math.max(0, Math.min(1, value));
+
+        sliderParam.value = value;
+        updateSliderVisual(sliderKnob, value);
+        console.log(`Slider set to value: ${value}`);
+    }
+
+    function updateSliderVisual(sliderKnob, value) {
+        const knobY = (1 - value) * (sliderHeight - knobHeight);
+        sliderKnob.setAttribute('y', knobY);
+    }
+}
+
+// ------ Light Visualisierung ------
+function setupLightVisualization(device, group) {
+    const maxLights = 16;
+    const lightClassPrefix = `${group}-lighty`;
+
+    const lightParam = device.parametersById.get(`light-${group}`);
+
+    if (lightParam) {
+        device.parameterChangeEvent.subscribe((param) => {
+            if (param.id === lightParam.id) {
+                const lightValue = Math.round(param.value);
+                updateLightVisual(lightValue);
+                console.log(`Light visual for ${group} set to: ${lightValue}`);
+            }
+        });
+    }
+
+    function updateLightVisual(activeLight) {
+        for (let i = 1; i <= maxLights; i++) {
+            const lightElements = document.querySelectorAll(`.${lightClassPrefix}${i}`);
+            lightElements.forEach((lightElement) => {
+                lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
+            });
+        }
+    }
 }
 
 
@@ -190,37 +215,6 @@ function setupOscilloscope(context, device, outputNode) {
     }
 
     drawOscilloscope(); // Zeichnen starten
-
-
-    function setupLightVisualization(device, groupPrefix) {
-        const maxLights = 16; // Anzahl der Lichter (1-16)
-        const lightClassPrefix = `${groupPrefix}-lighty`; // Klassenname-Präfix für Gruppe
-    
-        // RNBO-Parameter für diese spezifische Gruppe
-        const lightParam = device.parametersById.get(groupPrefix);
-    
-        if (lightParam) {
-            device.parameterChangeEvent.subscribe((param) => {
-                if (param.id === lightParam.id) {
-                    const lightValue = Math.round(param.value); // Wert zwischen 1 und 16
-                    updateLightVisual(lightValue);
-                    console.log(`Light visual (${groupPrefix}) set to: ${lightValue}`);
-                }
-            });
-        }
-    
-        function updateLightVisual(activeLight) {
-            for (let i = 1; i <= maxLights; i++) {
-                const lightElements = document.querySelectorAll(`.${lightClassPrefix}${i}`);
-                lightElements.forEach((lightElement) => {
-                    // Nur das aktive Licht sichtbar machen
-                    lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
-                });
-            }
-        }
-    }
-    
-    setupSliders(device); // Slider einrichten
 
     
 
@@ -302,32 +296,6 @@ function setupOscilloscope(context, device, outputNode) {
                     }
                 });
             }
-
-                // ------ Light-Visualisierung ------
-        const maxLights = 16; // Anzahl der Lichter (1-16)
-        const lightClassPrefix = "lighty"; // Klassenname-Präfix
-
-        const lightParam = device.parametersById.get("light");
-
-        if (lightParam) {
-            device.parameterChangeEvent.subscribe((param) => {
-                if (param.id === lightParam.id) {
-                    const lightValue = Math.round(param.value); // Wert zwischen 1 und 16
-                    updateLightVisual(lightValue);
-                    console.log(`Light visual set to: ${lightValue}`);
-                }
-            });
-        }
-
-        function updateLightVisual(activeLight) {
-            for (let i = 1; i <= maxLights; i++) {
-                const lightElement = document.querySelector(`.${lightClassPrefix}${i}`);
-                if (lightElement) {
-                    // Sichtbarkeit steuern: nur das aktive Licht sichtbar machen
-                    lightElement.style.visibility = i === activeLight ? "visible" : "hidden";
-                }
-            }
-        }
 
 
         // ------ Li-Visualisierung ------
@@ -561,6 +529,7 @@ function setupOscilloscope(context, device, outputNode) {
     }
 
 
+// ------ Hilfsfunktionen ------
 function setInitialParameterValues(device) {
     const initialValues = { c1: 4, c2: 5, c3: 5, c4: 5, c5: 6, slicont: 0 };
     Object.keys(initialValues).forEach((paramId) => {
@@ -579,4 +548,5 @@ function loadRNBOScript(version) {
     });
 }
 
+// Starte das Setup
 setup();
