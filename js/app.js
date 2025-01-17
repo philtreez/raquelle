@@ -142,24 +142,23 @@ async function setupSliders(device) {
     }
 }
 
-// ------ Light Visualisierung ------
-function setupLightVisualization(device, group) {
+function setupLightVisualization(device, groupPrefix) {
     const maxLights = 16;
-    const lightClassPrefix = `${group}-lighty`;
+    const lightClassPrefix = `${groupPrefix}-lighty`;
 
-    const lightParam = device.parametersById.get(`light-${group}`);
-
+    const lightParam = device.parametersById.get(groupPrefix);
+    
     if (lightParam) {
         device.parameterChangeEvent.subscribe((param) => {
             if (param.id === lightParam.id) {
                 const lightValue = Math.round(param.value);
-                updateLightVisual(lightValue);
-                console.log(`Light visual for ${group} set to: ${lightValue}`);
+                updateLightVisual(lightClassPrefix, lightValue);
+                console.log(`Light visual (${groupPrefix}) set to: ${lightValue}`);
             }
         });
     }
 
-    function updateLightVisual(activeLight) {
+    function updateLightVisual(lightClassPrefix, activeLight) {
         for (let i = 1; i <= maxLights; i++) {
             const lightElements = document.querySelectorAll(`.${lightClassPrefix}${i}`);
             lightElements.forEach((lightElement) => {
