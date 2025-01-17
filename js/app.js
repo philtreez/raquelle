@@ -32,9 +32,6 @@ async function setup() {
         setupButtons(device, 'q'); 
         setupButtons(device, 'r'); 
 
-        setupLightVisualization(device, "seq");
-        setupLightVisualization(device, "drums");
-
         setupSliders(device); // WICHTIG! Sliders aufrufen
         setupOscilloscope(context, device, outputNode);
 
@@ -169,7 +166,8 @@ function setupLightVisualization(device, group) {
     }
 }
 
-
+setupLightVisualization(device, "seq");
+setupLightVisualization(device, "drums");
 
 function setupOscilloscope(context, device, outputNode) {
     const analyserNode = context.createAnalyser();
