@@ -299,6 +299,31 @@ function setupOscilloscope(context, device, outputNode) {
                 });
             }
 
+                    // ------ lu-Visualisierung ------
+        const maxLu = 16; // Anzahl der Lichter (1-16)
+        const luClassPrefix = "lu"; // Klassenname-Präfix
+
+        const luParam = device.parametersById.get("lu");
+
+        if (luParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === luParam.id) {
+                    const luValue = Math.round(param.value); // Wert zwischen 1 und 16
+                    updateLuVisual(luValue);
+                    console.log(`Lu visual set to: ${luValue}`);
+                }
+            });
+        }
+
+        function updateLuVisual(activeLu) {
+            for (let i = 1; i <= maxLu; i++) {
+                const luElement = document.querySelector(`.${luClassPrefix}${i}`);
+                if (luElement) {
+                    // Sichtbarkeit steuern: nur das aktive Licht sichtbar machen
+                    luElement.style.visibility = i === activeLu ? "visible" : "hidden";
+                }
+            }
+        }
 
         // ------ Li-Visualisierung ------
         const maxLi = 16; // Anzahl der Lichter (1-16)
