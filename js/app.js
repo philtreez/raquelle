@@ -31,6 +31,8 @@ async function setup() {
         setupButtons(device, 'e'); 
         setupButtons(device, 'q'); 
         setupButtons(device, 'r'); 
+        setupButtons(device, 't'); 
+
 
         setupSliders(device); // WICHTIG! Sliders aufrufen
         setupOscilloscope(context, device, outputNode);
