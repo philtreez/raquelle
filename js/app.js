@@ -392,6 +392,51 @@ function setupOscilloscope(context, device, outputNode) {
             });
         }
 
+        // GIF-Container-Steuerung basierend auf RNBO-Parameter
+
+        function setupGifControl(device) {
+            if (!device || !device.node) {
+                console.error("RNBO device nicht initialisiert");
+                return;
+            }
+
+            const gifContainer = document.getElementById("gifs-container");
+            if (!gifContainer) {
+                console.error("GIF-Container nicht gefunden");
+                return;
+            }
+
+            const gifs = gifContainer.children; // Holt alle GIFs im Container
+            const gifParam = device.parametersById.get("gifControl"); // Parameter-Name in RNBO
+            
+            if (!gifParam) {
+                console.error("RNBO-Parameter 'gifControl' nicht gefunden");
+                return;
+            }
+
+            function updateGifVisibility(value) {
+                for (let i = 0; i < gifs.length; i++) {
+                    gifs[i].style.visibility = i === value ? "visible" : "hidden";
+                }
+            }
+
+            // Initial setzen
+            updateGifVisibility(Math.round(gifParam.value));
+            
+            // Listener für RNBO-Parameteränderung
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === gifParam.id) {
+                    updateGifVisibility(Math.round(param.value));
+                }
+            });
+        }
+
+        // Direktes Aufrufen, ohne .then()
+        if (typeof device !== "undefined" && device) {
+            setupGifControl(device);
+        }
+
+
         // ------ hat PNG-Strip Steuerung ------
         const hatDiv = document.getElementById("hat");
         const hatParam = device.parametersById.get("hat");
