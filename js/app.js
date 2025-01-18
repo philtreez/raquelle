@@ -87,7 +87,7 @@ function updateButtonVisual(buttonDiv, value) {
 
 // ------ Slider Steuerung ------
 async function setupSliders(device) {
-    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4', 'sli5', 'sli10', 'sli11', 'sli12', 'sli13', 'sli14', 'sli15', 'sli16', 'sli17', 'sli18', 'sli19', 'sli20', 'sli21', 'sli22', 'sli23', 'sli24', 'sli25', 'sli26', 'sli27', 'sli28', 'sli29', 'sli30'];
+    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4', 'sli5', 'sli10', 'sli11', 'sli12', 'sli13', 'sli14', 'sli15', 'sli16', 'sli17', 'sli18', 'sli19', 'sli20', 'sli21', 'sli22', 'sli23', 'sli24', 'sli25', 'sli26', 'sli27', 'sli28', 'sli29', 'sli30', 'sli31'];
     const sliderHeight = 120;
     const knobHeight = 18.84;
 
@@ -361,6 +361,18 @@ function setupOscilloscope(context, device, outputNode) {
                 const newValue = drumtParam.value === 0 ? 1 : 0;
                 drumtParam.value = newValue;
                 console.log(`drumt state set to: ${newValue}`);
+            });
+        }
+
+        // ------ rndmb-Button Steuerung ------
+        const rndmbButton = document.getElementById("rndmb");
+        const rndmbParam = device.parametersById.get("rndmb");
+
+        if (rndmbButton && rndmbParam) {
+            rndmbButton.addEventListener("click", () => {
+                const newValue = rndmbParam.value === 0 ? 1 : 0;
+                rndmbParam.value = newValue;
+                console.log(`rndmb state set to: ${newValue}`);
             });
         }
 
