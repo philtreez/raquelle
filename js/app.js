@@ -480,7 +480,7 @@ function setupOscilloscope(context, device, outputNode) {
 
 // ------ Hilfsfunktionen ------
 function setInitialParameterValues(device) {
-    const initialValues = { c1: 4, c2: 5, c3: 5, c4: 5, c5: 6, slicont: 0 };
+    const initialValues = { };
     Object.keys(initialValues).forEach((paramId) => {
         const param = device.parametersById.get(paramId);
         if (param) param.value = initialValues[paramId];
