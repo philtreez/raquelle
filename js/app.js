@@ -418,7 +418,6 @@ function setupOscilloscope(context, device, outputNode) {
         // ------ vowy PNG-Strip Steuerung ------
         const vowyDiv = document.getElementById("vowy");
         const vowyParam = device.parametersById.get("vowy");
-        const vowyContainer = document.getElementById("vowy-container");
 
         if (vowyDiv && vowyParam) {
             device.parameterChangeEvent.subscribe((param) => {
@@ -426,7 +425,6 @@ function setupOscilloscope(context, device, outputNode) {
                     const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
                     const yOffset = `${frameIndex * 500}px`; // Berechnet die Y-Position des aktuellen Frames
                     vowyDiv.style.backgroundPosition = `0 -${yOffset}`;
-                    vowyContainer.style.display = (frameIndex === 0) ? "none" : "block";
                     console.log(`vowy frame set to: ${frameIndex}`);
                 }
             });
