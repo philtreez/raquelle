@@ -400,23 +400,18 @@ function setupOscilloscope(context, device, outputNode) {
                 return;
             }
 
-            const gifContainer = document.getElementById("gifs-container");
-            if (!gifContainer) {
-                console.error("GIF-Container nicht gefunden");
-                return;
-            }
-
-            const gifs = gifContainer.children; // Holt alle GIFs im Container
             const gifParam = device.parametersById.get("gifControl"); // Parameter-Name in RNBO
-            
             if (!gifParam) {
                 console.error("RNBO-Parameter 'gifControl' nicht gefunden");
                 return;
             }
 
             function updateGifVisibility(value) {
-                for (let i = 0; i < gifs.length; i++) {
-                    gifs[i].style.visibility = i === value ? "visible" : "hidden";
+                for (let i = 0; i < 4; i++) {
+                    const gif = document.querySelector(`.gif${i}`);
+                    if (gif) {
+                        gif.style.visibility = i === value ? "visible" : "hidden";
+                    }
                 }
             }
 
@@ -435,6 +430,7 @@ function setupOscilloscope(context, device, outputNode) {
         if (typeof device !== "undefined" && device) {
             setupGifControl(device);
         }
+
 
 
         // ------ hat PNG-Strip Steuerung ------
