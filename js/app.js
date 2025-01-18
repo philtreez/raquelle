@@ -444,19 +444,19 @@ function setupOscilloscope(context, device, outputNode) {
             });
         }
 
-        // ------ snr PNG-Strip Steuerung ------
-        const snrDiv = document.getElementById("snr");
-        const snrParam = device.parametersById.get("snr");
-        const snrContainer = document.getElementById("snr-container");
+        // ------ snare PNG-Strip Steuerung ------
+        const snareDiv = document.getElementById("snare");
+        const snareParam = device.parametersById.get("snare");
+        const snareContainer = document.getElementById("snare-container");
 
-        if (snrDiv && snrParam) {
+        if (snareDiv && snareParam) {
             device.parameterChangeEvent.subscribe((param) => {
-                if (param.id === snrParam.id) {
+                if (param.id === snareParam.id) {
                     const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
                     const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
-                    snrDiv.style.backgroundPosition = `0 -${yOffset}`;
-                    snrContainer.style.display = (frameIndex === 0) ? "none" : "block";
-                    console.log(`snr frame set to: ${frameIndex}`);
+                    snareDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    snareContainer.style.display = (frameIndex === 0) ? "none" : "block";
+                    console.log(`snare frame set to: ${frameIndex}`);
                 }
             });
         }
