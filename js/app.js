@@ -304,15 +304,15 @@ function setupOscilloscope(context, device, outputNode) {
         }
 
 
-        // ------ vow-Button Steuerung ------
-        const vowButton = document.getElementById("vow");
-        const vowParam = device.parametersById.get("vow");
+        // ------ spiel-Button Steuerung ------
+        const spielButton = document.getElementById("spiel");
+        const spielParam = device.parametersById.get("spiel");
 
-        if (vowButton && vowParam) {
-            vowButton.addEventListener("click", () => {
-                const newValue = vowParam.value === 0 ? 1 : 0;
-                vowParam.value = newValue;
-                console.log(`vow state set to: ${newValue}`);
+        if (spielButton && spielParam) {
+            spielButton.addEventListener("click", () => {
+                const newValue = spielParam.value === 0 ? 1 : 0;
+                spielParam.value = newValue;
+                console.log(`spiel state set to: ${newValue}`);
             });
         }
 
