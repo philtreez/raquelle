@@ -442,7 +442,7 @@ function setupOscilloscope(context, device, outputNode) {
             device.parameterChangeEvent.subscribe((param) => {
                 if (param.id === vowyParam.id) {
                     const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
-                    const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
+                    const yOffset = `${frameIndex * 500}px`; // Berechnet die Y-Position des aktuellen Frames
                     vowyDiv.style.backgroundPosition = `0 -${yOffset}`;
                     vowyContainer.style.display = (frameIndex === 0) ? "none" : "block";
                     console.log(`vowy frame set to: ${frameIndex}`);
