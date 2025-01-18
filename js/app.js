@@ -189,58 +189,71 @@ function setupOscilloscope(context, device, outputNode) {
 
     drawOscilloscope(); // Zeichnen starten
 
-        // Spektrogramm-Visualizer mit RNBO Audioquelle (optimiert)
+ // Optimiertes Spektrogramm für RNBO in Webflow
 
-        async function setupSpectrogram(device) {
-            if (!device || !device.node) {
-                console.error("RNBO device nicht initialisiert");
-                return;
-            }
+let spectrogramInitialized = false; // Verhindert doppelte Initialisierung
 
-            const audioCtx = device.context;
-            const analyser = audioCtx.createAnalyser();
-            analyser.fftSize = 1024;
-            analyser.smoothingTimeConstant = 0.85; // Verhindert zu schnelle Veränderungen
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
+async function setupSpectrogram(device) {
+    if (!device || !device.node) {
+        console.error("RNBO device nicht initialisiert");
+        return;
+    }
+    
+    if (spectrogramInitialized) {
+        console.warn("Spektrogramm wurde bereits initialisiert.");
+        return;
+    }
+    spectrogramInitialized = true;
 
-            // Verhindert doppelte Verbindungen
-            if (!device.node.analyserConnected) {
-                device.node.connect(analyser);
-                device.node.analyserConnected = true;
-            }
+    const audioCtx = device.context;
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    analyser.smoothingTimeConstant = 0.85;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
 
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            document.body.appendChild(canvas);
-            canvas.width = window.innerWidth;
-            canvas.height = 300;
+    if (!device.node.analyserConnected) {
+        device.node.connect(analyser);
+        device.node.analyserConnected = true;
+    }
 
-            function draw() {
-                requestAnimationFrame(draw);
-                analyser.getByteFrequencyData(dataArray);
-                
-                ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                const barWidth = (canvas.width / bufferLength) * 2.5;
-                let x = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    const barHeight = dataArray[i] * 1.5;
-                    ctx.fillStyle = `hsl(${(i / bufferLength) * 360}, 100%, 50%)`;
-                    ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-                    x += barWidth + 1;
-                }
-            }
-            draw();
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = 300;
+
+    const container = document.getElementById("spectrogram-container");
+    if (container) {
+        container.appendChild(canvas);
+    } else {
+        document.body.appendChild(canvas);
+    }
+
+    function draw() {
+        if (!spectrogramInitialized) return; // Falls das Spektrogramm deaktiviert wird
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(dataArray);
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const barWidth = (canvas.width / bufferLength) * 2.5;
+        let x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+            const barHeight = dataArray[i] * 1.5;
+            ctx.fillStyle = `hsl(${(i / bufferLength) * 360}, 100%, 50%)`;
+            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+            x += barWidth + 1;
         }
+    }
+    draw();
+}
 
-        // Integriere das Spektrogramm ins RNBO-Setup
-        setup().then(() => {
-            if (typeof device !== "undefined" && device) {
-                setupSpectrogram(device);
-            }
-        });
+// Stellt sicher, dass das Spektrogramm erst nach RNBO geladen wird
+setup().then(() => {
+    if (typeof device !== "undefined" && device) {
+        setupSpectrogram(device);
+    }
+});
 
 
 
