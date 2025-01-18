@@ -144,120 +144,52 @@ async function setupSliders(device) {
 
 
 
-        // Gemeinsames AnalyserNode für Oszilloskop & Partikel-Visualizer
+function setupOscilloscope(context, device, outputNode) {
+    const analyserNode = context.createAnalyser();
+    analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
+    const bufferLength = analyserNode.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
 
-        let particles = [];
-        let analyserNode;
+    device.node.connect(analyserNode); // Verbinde Analyser mit dem Audio-Ausgang
+    analyserNode.connect(outputNode);
 
-        async function setupVisualizer(device) {
-            if (!device || !device.node) {
-                console.error("RNBO device nicht initialisiert");
-                return;
+    const oscilloscopeCanvas = document.getElementById('oscilloscope');
+    oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
+    oscilloscopeCanvas.height = 230;
+    const oscilloscopeContext = oscilloscopeCanvas.getContext("2d");
+
+    function drawOscilloscope() {
+        requestAnimationFrame(drawOscilloscope);
+        analyserNode.getByteTimeDomainData(dataArray);
+
+        oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
+        oscilloscopeContext.lineWidth = 4;
+        oscilloscopeContext.strokeStyle = "rgb(0, 255, 130)"; // Farbe der Wellenform
+        oscilloscopeContext.beginPath();
+
+        const sliceWidth = oscilloscopeCanvas.width / bufferLength;
+        let x = 0;
+
+        for (let i = 0; i < bufferLength; i++) {
+            const v = dataArray[i] / 128.0;
+            const y = (v * oscilloscopeCanvas.height) / 2;
+
+            if (i === 0) {
+                oscilloscopeContext.moveTo(x, y);
+            } else {
+                oscilloscopeContext.lineTo(x, y);
             }
-            
-            const audioCtx = device.context;
-            if (!analyserNode) {
-                analyserNode = audioCtx.createAnalyser();
-                analyserNode.fftSize = 256;
-                analyserNode.smoothingTimeConstant = 0.8;
-                device.node.connect(analyserNode);
-            }
 
-            setupOscilloscope(analyserNode);
-            setupParticles(analyserNode);
+            x += sliceWidth;
         }
 
-        function setupOscilloscope(analyser) {
-            const canvas = document.getElementById("oscilloscope");
-            const ctx = canvas.getContext("2d");
-            canvas.width = canvas.offsetWidth;
-            canvas.height = 230;
+        oscilloscopeContext.lineTo(oscilloscopeCanvas.width, oscilloscopeCanvas.height / 2);
+        oscilloscopeContext.stroke();
+    }
 
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
+    drawOscilloscope(); // Zeichnen starten
 
-            function drawOscilloscope() {
-                requestAnimationFrame(drawOscilloscope);
-                analyser.getByteTimeDomainData(dataArray);
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = "rgb(0, 255, 130)";
-                ctx.beginPath();
-
-                const sliceWidth = canvas.width / bufferLength;
-                let x = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    const v = dataArray[i] / 128.0;
-                    const y = (v * canvas.height) / 2;
-
-                    if (i === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                    x += sliceWidth;
-                }
-                ctx.lineTo(canvas.width, canvas.height / 2);
-                ctx.stroke();
-            }
-            drawOscilloscope();
-        }
-
-        function setupParticles(analyser) {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            document.body.appendChild(canvas);
-
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            for (let i = 0; i < 150; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    radius: Math.random() * 5 + 2,
-                    speedX: (Math.random() - 0.5) * 2,
-                    speedY: (Math.random() - 0.5) * 2,
-                    color: `hsl(${Math.random() * 360}, 100%, 50%)`
-                });
-            }
-
-            function drawParticles() {
-                requestAnimationFrame(drawParticles);
-                analyser.getByteFrequencyData(dataArray);
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                particles.forEach((p, index) => {
-                    p.x += p.speedX;
-                    p.y += p.speedY;
-                    if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-                    if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-                    
-                    const intensity = dataArray[index % bufferLength] / 255;
-                    p.radius = 2 + intensity * 8;
-                    
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                    ctx.fillStyle = p.color;
-                    ctx.fill();
-                    ctx.closePath();
-                });
-            }
-            drawParticles();
-        
-
-        setup().then(() => {
-            if (typeof device !== "undefined" && device) {
-                setupVisualizer(device);
-            }
-        });
-
-
-
-
+    
 
         // ------ Intro PNG-Strip Steuerung ------
         const introDiv = document.getElementById("intro");
