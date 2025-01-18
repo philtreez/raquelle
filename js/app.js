@@ -144,124 +144,116 @@ async function setupSliders(device) {
 
 
 
-function setupOscilloscope(context, device, outputNode) {
-    const analyserNode = context.createAnalyser();
-    analyserNode.fftSize = 2048; // Auflösung des Oszilloskops
-    const bufferLength = analyserNode.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+        // Gemeinsames AnalyserNode für Oszilloskop & Partikel-Visualizer
 
-    device.node.connect(analyserNode); // Verbinde Analyser mit dem Audio-Ausgang
-    analyserNode.connect(outputNode);
+        let particles = [];
+        let analyserNode;
 
-    const oscilloscopeCanvas = document.getElementById('oscilloscope');
-    oscilloscopeCanvas.width = oscilloscopeCanvas.offsetWidth;
-    oscilloscopeCanvas.height = 230;
-    const oscilloscopeContext = oscilloscopeCanvas.getContext("2d");
-
-    function drawOscilloscope() {
-        requestAnimationFrame(drawOscilloscope);
-        analyserNode.getByteTimeDomainData(dataArray);
-
-        oscilloscopeContext.clearRect(0, 0, oscilloscopeCanvas.width, oscilloscopeCanvas.height);
-        oscilloscopeContext.lineWidth = 4;
-        oscilloscopeContext.strokeStyle = "rgb(0, 255, 130)"; // Farbe der Wellenform
-        oscilloscopeContext.beginPath();
-
-        const sliceWidth = oscilloscopeCanvas.width / bufferLength;
-        let x = 0;
-
-        for (let i = 0; i < bufferLength; i++) {
-            const v = dataArray[i] / 128.0;
-            const y = (v * oscilloscopeCanvas.height) / 2;
-
-            if (i === 0) {
-                oscilloscopeContext.moveTo(x, y);
-            } else {
-                oscilloscopeContext.lineTo(x, y);
+        async function setupVisualizer(device) {
+            if (!device || !device.node) {
+                console.error("RNBO device nicht initialisiert");
+                return;
+            }
+            
+            const audioCtx = device.context;
+            if (!analyserNode) {
+                analyserNode = audioCtx.createAnalyser();
+                analyserNode.fftSize = 256;
+                analyserNode.smoothingTimeConstant = 0.8;
+                device.node.connect(analyserNode);
             }
 
-            x += sliceWidth;
+            setupOscilloscope(analyserNode);
+            setupParticles(analyserNode);
         }
 
-        oscilloscopeContext.lineTo(oscilloscopeCanvas.width, oscilloscopeCanvas.height / 2);
-        oscilloscopeContext.stroke();
-    }
+        function setupOscilloscope(analyser) {
+            const canvas = document.getElementById("oscilloscope");
+            const ctx = canvas.getContext("2d");
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 230;
 
-    drawOscilloscope(); // Zeichnen starten
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
 
- 
-    // Partikel-Visualizer für RNBO in Webflow
+            function drawOscilloscope() {
+                requestAnimationFrame(drawOscilloscope);
+                analyser.getByteTimeDomainData(dataArray);
 
-let particles = [];
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = "rgb(0, 255, 130)";
+                ctx.beginPath();
 
-async function setupParticles(device) {
-    if (!device || !device.node) {
-        console.error("RNBO device nicht initialisiert");
-        return;
-    }
-    
-    const audioCtx = device.context;
-    const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.8;
-    const bufferLength = analyser.frequencyBinCount;
-    const dataArray = new Uint8Array(bufferLength);
+                const sliceWidth = canvas.width / bufferLength;
+                let x = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    const v = dataArray[i] / 128.0;
+                    const y = (v * canvas.height) / 2;
 
-    if (!device.node.analyserConnected) {
-        device.node.connect(analyser);
-        device.node.analyserConnected = true;
-    }
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const container = document.getElementById("particle-container");
-    if (container) {
-        container.appendChild(canvas);
-    } else {
-        document.body.appendChild(canvas);
-    }
-
-    function initParticles() {
-        for (let i = 0; i < 150; i++) {
-            particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                radius: Math.random() * 5 + 2,
-                speedX: (Math.random() - 0.5) * 2,
-                speedY: (Math.random() - 0.5) * 2,
-                color: `hsl(${Math.random() * 360}, 100%, 50%)`
-            });
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                    x += sliceWidth;
+                }
+                ctx.lineTo(canvas.width, canvas.height / 2);
+                ctx.stroke();
+            }
+            drawOscilloscope();
         }
-    }
-    initParticles();
 
-    function draw() {
-        requestAnimationFrame(draw);
-        analyser.getByteFrequencyData(dataArray);
+        function setupParticles(analyser) {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            document.body.appendChild(canvas);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    radius: Math.random() * 5 + 2,
+                    speedX: (Math.random() - 0.5) * 2,
+                    speedY: (Math.random() - 0.5) * 2,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`
+                });
+            }
+
+            function drawParticles() {
+                requestAnimationFrame(drawParticles);
+                analyser.getByteFrequencyData(dataArray);
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                particles.forEach((p, index) => {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+                    if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+                    if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+                    
+                    const intensity = dataArray[index % bufferLength] / 255;
+                    p.radius = 2 + intensity * 8;
+                    
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.fill();
+                    ctx.closePath();
+                });
+            }
+            drawParticles();
         
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        particles.forEach((p, index) => {
-            p.x += p.speedX;
-            p.y += p.speedY;
-            if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
-            if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
-            
-            const intensity = dataArray[index % bufferLength] / 255;
-            p.radius = 2 + intensity * 8;
-            
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fillStyle = p.color;
-            ctx.fill();
-            ctx.closePath();
+
+        setup().then(() => {
+            if (typeof device !== "undefined" && device) {
+                setupVisualizer(device);
+            }
         });
-    }
-    draw();
-}
 
 
 
