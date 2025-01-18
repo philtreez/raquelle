@@ -263,12 +263,6 @@ async function setupParticles(device) {
     draw();
 }
 
-setup().then(() => {
-    if (typeof device !== "undefined" && device) {
-        setupParticles(device);
-    }
-});
-
 
 
 
