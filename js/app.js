@@ -414,22 +414,6 @@ function setupOscilloscope(context, device, outputNode) {
             });
         }
 
-        // ------ pk PNG-Strip Steuerung ------
-        const pkDiv = document.getElementById("pk");
-        const pkParam = device.parametersById.get("pk");
-        const pkContainer = document.getElementById("pk-container");
-
-        if (pkDiv && pkParam) {
-            device.parameterChangeEvent.subscribe((param) => {
-                if (param.id === pkParam.id) {
-                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
-                    const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
-                    pkDiv.style.backgroundPosition = `0 -${yOffset}`;
-                    pkContainer.style.display = (frameIndex === 0) ? "none" : "block";
-                    console.log(`pk frame set to: ${frameIndex}`);
-                }
-            });
-        }
 
         // ------ vowy PNG-Strip Steuerung ------
         const vowyDiv = document.getElementById("vowy");
