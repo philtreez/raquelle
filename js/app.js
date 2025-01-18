@@ -189,16 +189,26 @@ function setupOscilloscope(context, device, outputNode) {
 
     drawOscilloscope(); // Zeichnen starten
 
-    // Spektrogramm-Visualizer mit RNBO Audioquelle
+        // Spektrogramm-Visualizer mit RNBO Audioquelle (optimiert)
 
         async function setupSpectrogram(device) {
+            if (!device || !device.node) {
+                console.error("RNBO device nicht initialisiert");
+                return;
+            }
+
             const audioCtx = device.context;
             const analyser = audioCtx.createAnalyser();
             analyser.fftSize = 1024;
+            analyser.smoothingTimeConstant = 0.85; // Verhindert zu schnelle Veränderungen
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
 
-            device.node.connect(analyser);
+            // Verhindert doppelte Verbindungen
+            if (!device.node.analyserConnected) {
+                device.node.connect(analyser);
+                device.node.analyserConnected = true;
+            }
 
             const canvas = document.createElement("canvas");
             const ctx = canvas.getContext("2d");
@@ -227,10 +237,11 @@ function setupOscilloscope(context, device, outputNode) {
 
         // Integriere das Spektrogramm ins RNBO-Setup
         setup().then(() => {
-            if (device) {
+            if (typeof device !== "undefined" && device) {
                 setupSpectrogram(device);
             }
         });
+
 
 
 
