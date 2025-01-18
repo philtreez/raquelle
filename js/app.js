@@ -189,26 +189,21 @@ function setupOscilloscope(context, device, outputNode) {
 
     drawOscilloscope(); // Zeichnen starten
 
- // Optimiertes Spektrogramm für RNBO in Webflow
+ 
+    // Partikel-Visualizer für RNBO in Webflow
 
-let spectrogramInitialized = false; // Verhindert doppelte Initialisierung
+let particles = [];
 
-async function setupSpectrogram(device) {
+async function setupParticles(device) {
     if (!device || !device.node) {
         console.error("RNBO device nicht initialisiert");
         return;
     }
     
-    if (spectrogramInitialized) {
-        console.warn("Spektrogramm wurde bereits initialisiert.");
-        return;
-    }
-    spectrogramInitialized = true;
-
     const audioCtx = device.context;
     const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 1024;
-    analyser.smoothingTimeConstant = 0.85;
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.8;
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
 
@@ -220,40 +215,60 @@ async function setupSpectrogram(device) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
-    canvas.height = 300;
+    canvas.height = window.innerHeight;
 
-    const container = document.getElementById("spectrogram-container");
+    const container = document.getElementById("particle-container");
     if (container) {
         container.appendChild(canvas);
     } else {
         document.body.appendChild(canvas);
     }
 
+    function initParticles() {
+        for (let i = 0; i < 150; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 5 + 2,
+                speedX: (Math.random() - 0.5) * 2,
+                speedY: (Math.random() - 0.5) * 2,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`
+            });
+        }
+    }
+    initParticles();
+
     function draw() {
-        if (!spectrogramInitialized) return; // Falls das Spektrogramm deaktiviert wird
         requestAnimationFrame(draw);
         analyser.getByteFrequencyData(dataArray);
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        const barWidth = (canvas.width / bufferLength) * 2.5;
-        let x = 0;
-        for (let i = 0; i < bufferLength; i++) {
-            const barHeight = dataArray[i] * 1.5;
-            ctx.fillStyle = `hsl(${(i / bufferLength) * 360}, 100%, 50%)`;
-            ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-            x += barWidth + 1;
-        }
+        particles.forEach((p, index) => {
+            p.x += p.speedX;
+            p.y += p.speedY;
+            if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+            if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+            
+            const intensity = dataArray[index % bufferLength] / 255;
+            p.radius = 2 + intensity * 8;
+            
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+            ctx.closePath();
+        });
     }
     draw();
 }
 
-// Stellt sicher, dass das Spektrogramm erst nach RNBO geladen wird
 setup().then(() => {
     if (typeof device !== "undefined" && device) {
-        setupSpectrogram(device);
+        setupParticles(device);
     }
 });
+
 
 
 
