@@ -87,7 +87,7 @@ function updateButtonVisual(buttonDiv, value) {
 
 // ------ Slider Steuerung ------
 async function setupSliders(device) {
-    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4', 'sli5', 'sli10', 'sli11', 'sli12', 'sli13', 'sli14', 'sli15', 'sli16', 'sli17', 'sli18', 'sli19', 'sli20', 'sli21', 'sli22', 'sli23', 'sli24', 'sli25', 'sli26'];
+    const sliderIds = ['sli', 'sli2', 'sli3', 'sli4', 'sli5', 'sli10', 'sli11', 'sli12', 'sli13', 'sli14', 'sli15', 'sli16', 'sli17', 'sli18', 'sli19', 'sli20', 'sli21', 'sli22', 'sli23', 'sli24', 'sli25', 'sli26', 'sli27', 'sli28', 'sli29', 'sli30'];
     const sliderHeight = 120;
     const knobHeight = 18.84;
 
@@ -190,51 +190,6 @@ function setupOscilloscope(context, device, outputNode) {
     drawOscilloscope(); // Zeichnen starten
 
     
-
-        // Parameter zur Steuerung der Sichtbarkeit abonnieren
-        const chorderParam = device.parametersById.get("chorder"); // Name des RNBO-Parameters
-        if (chorderParam) {
-            device.parameterChangeEvent.subscribe((param) => {
-                if (param.id === chorderParam.id) {
-                    const value = Math.round(param.value); // Rundet auf ganze Zahlen
-                    updateChorderVisibility(value);
-                    console.log(`Chorder visibility set to: ${value}`);
-                }
-            });
-        }
-
-        function updateChorderVisibility(value) {
-            for (let i = 1; i <= 3; i++) {
-                const chorderDiv = document.getElementById(`chorder${i}`);
-                if (chorderDiv) {
-                    chorderDiv.style.display = (value === i) ? "block" : "none";
-                }
-            }
-        }
-
-        updateChorderVisibility(0); // Setze initial alle Chorder auf unsichtbar
-
-        // ------ Steuerung für slicont (0-5) ------
-        const slicontParam = device.parametersById.get("slicont");
-
-        if (slicontParam) {
-            device.parameterChangeEvent.subscribe((param) => {
-                if (param.id === slicontParam.id) {
-                    const value = Math.round(param.value); // Rundet auf Integer-Werte 0-5
-                    updateSlicontBackground(value);
-                    console.log(`slicont parameter set to: ${value}`);
-                }
-            });
-        }
-
-        function updateSlicontBackground(value) {
-            for (let i = 1; i <= 5; i++) {
-                const slicontDiv = document.getElementById(`slicont${i}`);
-                if (slicontDiv) {
-                    slicontDiv.style.backgroundColor = (value === i) ? "rgba(0, 255, 130, 0.5)" : "transparent";
-                }
-            }
-        }
 
         // ------ Intro PNG-Strip Steuerung ------
         const introDiv = document.getElementById("intro");
@@ -349,39 +304,39 @@ function setupOscilloscope(context, device, outputNode) {
         }
 
 
-        // ------ ki-Button Steuerung ------
-        const kiButton = document.getElementById("ki");
-        const kiParam = device.parametersById.get("ki");
+        // ------ vow-Button Steuerung ------
+        const vowButton = document.getElementById("vow");
+        const vowParam = device.parametersById.get("vow");
 
-        if (kiButton && kiParam) {
-            kiButton.addEventListener("click", () => {
-                const newValue = kiParam.value === 0 ? 1 : 0;
-                kiParam.value = newValue;
-                console.log(`ki state set to: ${newValue}`);
+        if (vowButton && vowParam) {
+            vowButton.addEventListener("click", () => {
+                const newValue = vowParam.value === 0 ? 1 : 0;
+                vowParam.value = newValue;
+                console.log(`vow state set to: ${newValue}`);
             });
         }
 
-        // ------ sn-Button Steuerung ------
-        const snButton = document.getElementById("sn");
-        const snParam = device.parametersById.get("sn");
+        // ------ tel-Button Steuerung ------
+        const telButton = document.getElementById("tel");
+        const telParam = device.parametersById.get("tel");
 
-        if (snButton && snParam) {
-            snButton.addEventListener("click", () => {
-                const newValue = snParam.value === 0 ? 1 : 0;
-                snParam.value = newValue;
-                console.log(`sn state set to: ${newValue}`);
+        if (telButton && telParam) {
+            telButton.addEventListener("click", () => {
+                const newValue = telParam.value === 0 ? 1 : 0;
+                telParam.value = newValue;
+                console.log(`tel state set to: ${newValue}`);
             });
         }
 
-        // ------ clp-Button Steuerung ------
-        const clpButton = document.getElementById("clp");
-        const clpParam = device.parametersById.get("clp");
+        // ------ seqon-Button Steuerung ------
+        const seqonButton = document.getElementById("seqon");
+        const seqonParam = device.parametersById.get("seqon");
 
-        if (clpButton && clpParam) {
-            clpButton.addEventListener("click", () => {
-                const newValue = clpParam.value === 0 ? 1 : 0;
-                clpParam.value = newValue;
-                console.log(`clp state set to: ${newValue}`);
+        if (seqonButton && seqonParam) {
+            seqonButton.addEventListener("click", () => {
+                const newValue = seqonParam.value === 0 ? 1 : 0;
+                seqonParam.value = newValue;
+                console.log(`seqon state set to: ${newValue}`);
             });
         }
 
@@ -478,6 +433,23 @@ function setupOscilloscope(context, device, outputNode) {
             });
         }
 
+        // ------ vowy PNG-Strip Steuerung ------
+        const vowyDiv = document.getElementById("vowy");
+        const vowyParam = device.parametersById.get("vowy");
+        const vowyContainer = document.getElementById("vowy-container");
+
+        if (vowyDiv && vowyParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === vowyParam.id) {
+                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                    const yOffset = `${frameIndex * 340}px`; // Berechnet die Y-Position des aktuellen Frames
+                    vowyDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    vowyContainer.style.display = (frameIndex === 0) ? "none" : "block";
+                    console.log(`vowy frame set to: ${frameIndex}`);
+                }
+            });
+        }
+
         // ------ clap PNG-Strip Steuerung ------
         const clapDiv = document.getElementById("clap");
         const clapParam = device.parametersById.get("clap");
@@ -494,70 +466,6 @@ function setupOscilloscope(context, device, outputNode) {
                 }
             });
         }
-
-
-        // ------ Slider Steuerung mit Drag-Funktion (c1 bis c5) ------
-        for (let i = 1; i <= 5; i++) {
-            const sliderDiv = document.getElementById(`c${i}-slider`);
-            const sliderParam = device.parametersById.get(`c${i}`);
-
-            if (sliderDiv && sliderParam) {
-                const steps = sliderDiv.querySelectorAll(".step");
-
-                // Setze initialen Zustand der Slider entsprechend der Parameterwerte
-                updateSliderVisual(sliderDiv, Math.round(sliderParam.value));
-
-                sliderDiv.addEventListener("mousedown", (event) => {
-                    isDragging = true;
-                    currentSliderIndex = i;
-                    handleStepSelection(event, sliderDiv, steps, sliderParam);
-                });
-
-                sliderDiv.addEventListener("mousemove", (event) => {
-                    if (isDragging && currentSliderIndex === i) {
-                        handleStepSelection(event, sliderDiv, steps, sliderParam);
-                    }
-                });
-
-                sliderDiv.addEventListener("mouseup", () => {
-                    isDragging = false;
-                    currentSliderIndex = -1;
-                });
-
-                sliderDiv.addEventListener("mouseleave", () => {
-                    isDragging = false;
-                    currentSliderIndex = -1;
-                });
-
-                device.parameterChangeEvent.subscribe((param) => {
-                    if (param.id === sliderParam.id) {
-                        const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-12
-                        updateSliderVisual(sliderDiv, frameIndex);
-                        console.log(`Slider c${i} frame set to: ${frameIndex}`);
-                    }
-                });
-            }
-        }
-
-            function handleStepSelection(event, sliderDiv, steps, sliderParam) {
-                const rect = sliderDiv.getBoundingClientRect();
-                const y = event.clientY - rect.top;
-                const stepHeight = rect.height / steps.length;
-                const selectedIndex = Math.floor(y / stepHeight);
-
-                if (selectedIndex >= 0 && selectedIndex < steps.length) {
-                    sliderParam.value = selectedIndex;
-                    updateSliderVisual(sliderDiv, selectedIndex);
-                    console.log(`Slider ${sliderDiv.id} set to value: ${selectedIndex}`);
-                }
-            }
-
-            function updateSliderVisual(sliderDiv, frameIndex) {
-                const steps = sliderDiv.querySelectorAll(".step");
-                steps.forEach((step, index) => {
-                    step.style.backgroundColor = index === frameIndex ? "rgb(0, 255, 130)" : "transparent";
-                });
-            }
 
             setInitialParameterValues(device); // Initiale Werte setzen
     
