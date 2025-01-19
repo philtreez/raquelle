@@ -352,6 +352,18 @@ function setupOscilloscope(context, device, outputNode) {
             });
         }
 
+        // ------ trump-Button Steuerung ------
+        const trumpButton = document.getElementById("trump");
+        const trumpParam = device.parametersById.get("trump");
+
+        if (trumpButton && trumpParam) {
+            trumpButton.addEventListener("click", () => {
+                const newValue = trumpParam.value === 0 ? 1 : 0;
+                trumpParam.value = newValue;
+                console.log(`trump state set to: ${newValue}`);
+            });
+        }
+
         // ------ drumt-Button Steuerung ------
         const drumtButton = document.getElementById("drumt");
         const drumtParam = device.parametersById.get("drumt");
@@ -513,7 +525,7 @@ function setupOscilloscope(context, device, outputNode) {
 
 // ------ Hilfsfunktionen ------
 function setInitialParameterValues(device) {
-    const initialValues = { };
+    const initialValues = { sli37: 1, b1: 1, b7: 1, r5: 1, r11: 1 };
     Object.keys(initialValues).forEach((paramId) => {
         const param = device.parametersById.get(paramId);
         if (param) param.value = initialValues[paramId];
