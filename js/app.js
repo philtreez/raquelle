@@ -495,6 +495,21 @@ function setupOscilloscope(context, device, outputNode) {
             });
         }
 
+        // ------ inti PNG-Strip Steuerung ------
+        const intiDiv = document.getElementById("inti");
+        const intiParam = device.parametersById.get("inti");
+
+        if (intiDiv && intiParam) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === intiParam.id) {
+                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                    const yOffset = `${frameIndex * 400}px`; // Berechnet die Y-Position des aktuellen Frames
+                    intiDiv.style.backgroundPosition = `0 -${yOffset}`;
+                    console.log(`inti frame set to: ${frameIndex}`);
+                }
+            });
+        }
+
         // ------ clap PNG-Strip Steuerung ------
         const clapDiv = document.getElementById("clap");
         const clapParam = device.parametersById.get("clap");
@@ -525,7 +540,7 @@ function setupOscilloscope(context, device, outputNode) {
 
 // ------ Hilfsfunktionen ------
 function setInitialParameterValues(device) {
-    const initialValues = { sli37: 1, b1: 1, b7: 1, r5: 1, r13: 1, sli26: 0.6 };
+    const initialValues = { sli37: 1, b1: 1, b7: 1, r5: 1, r13: 1, sli26: 0.9, hi: 1 };
     Object.keys(initialValues).forEach((paramId) => {
         const param = device.parametersById.get(paramId);
         if (param) param.value = initialValues[paramId];
