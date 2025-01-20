@@ -495,6 +495,21 @@ function setupOscilloscope(context, device, outputNode) {
             });
         }
 
+        // ------ inti2 PNG-Strip Steuerung ------
+        const inti2Div = document.getElementById("inti2");
+        const inti2Param = device.parametersById.get("inti2");
+
+        if (inti2Div && inti2Param) {
+            device.parameterChangeEvent.subscribe((param) => {
+                if (param.id === inti2Param.id) {
+                    const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
+                    const yOffset = `${frameIndex * 200}px`; // Berechnet die Y-Position des aktuellen Frames
+                    inti2Div.style.backgroundPosition = `0 -${yOffset}`;
+                    console.log(`inti2 frame set to: ${frameIndex}`);
+                }
+            });
+        }
+
         // ------ inti PNG-Strip Steuerung ------
         const intiDiv = document.getElementById("inti");
         const intiParam = device.parametersById.get("inti");
