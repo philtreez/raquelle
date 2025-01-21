@@ -518,7 +518,7 @@ function setupOscilloscope(context, device, outputNode) {
             device.parameterChangeEvent.subscribe((param) => {
                 if (param.id === intiParam.id) {
                     const frameIndex = Math.round(param.value); // Rundet auf Integer-Werte 0-23
-                    const yOffset = `${frameIndex * 400}px`; // Berechnet die Y-Position des aktuellen Frames
+                    const yOffset = `${frameIndex * 200}px`; // Berechnet die Y-Position des aktuellen Frames
                     intiDiv.style.backgroundPosition = `0 -${yOffset}`;
                     console.log(`inti frame set to: ${frameIndex}`);
                 }
